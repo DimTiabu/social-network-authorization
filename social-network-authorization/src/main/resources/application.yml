@@ -1,0 +1,22 @@
+server:
+  port: 8081
+spring:
+  #  kafka:
+  #    bootstrap-servers: localhost:9092
+  main:
+    allow-circular-references: true
+  jpa:
+    generate-ddl: true
+    open-in-view: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/authorization_db
+    #    username: postgre_user
+    #    password: postgre_secret_password
+    username: postgres
+    password: postgres
+    hikari:
+      schema: auth_schema
+      connection-init-sql: create schema if not exists auth_schema
+      connection-timeout: 10000
+  liquibase:
+    enabled: false
