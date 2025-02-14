@@ -1,13 +1,18 @@
 server:
   port: 8081
+
 spring:
-  #  kafka:
-  #    bootstrap-servers: localhost:9092
+  kafka:
+    bootstrap-servers: localhost:9092
   main:
     allow-circular-references: true
   jpa:
-    generate-ddl: true
+    generate-ddl: false
     open-in-view: true
+  data:
+    redis:
+      port: 6379
+      host: localhost
   datasource:
     url: jdbc:postgresql://localhost:5432/authorization_db
     #    username: postgre_user
@@ -19,4 +24,16 @@ spring:
       connection-init-sql: create schema if not exists auth_schema
       connection-timeout: 10000
   liquibase:
-    enabled: false
+    change_log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+    drop-first: true
+
+app:
+  kafka:
+    topicProducer: "registration-topic"
+    topicListener: "created-account-topic"
+    kafkaMessageGroupId: "kafka-account-group-id"
+  jwt:
+    secret: "someSecretKey"
+    tokenExpiration: 3m
+    refreshTokenExpiration: 30m

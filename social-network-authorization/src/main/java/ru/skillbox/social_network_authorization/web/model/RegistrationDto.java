@@ -1,0 +1,36 @@
+package ru.skillbox.social_network_authorization.web.model;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+
+@Data
+@RequiredArgsConstructor
+@AllArgsConstructor
+@Builder
+public class RegistrationDto {
+    @NotEmpty(message = "Укажите электронную почту")
+    @Email(message = "Неправильный формат электронной почты")
+    private String email;
+
+    @NotEmpty(message = "Пароль1 не может быть пустым")
+    private String password1;
+
+    @NotEmpty(message = "Пароль2 не может быть пустым")
+    private String password2;
+
+    @NotEmpty(message = "Заполните поле \"Имя\"")
+    private String firstName;
+
+    @NotEmpty(message = "Заполните поле \"Фамилия\"")
+    private String lastName;
+
+    @NotEmpty(message = "Заполните поле \"Code\"")
+    private String code;
+
+    @NotEmpty(message = "Заполните поле \"Token\"")
+    private String token;
+}
