@@ -1,10 +1,8 @@
 package ru.skillbox.social_network_authorization.service.impl;
 
-import io.jsonwebtoken.Jwt;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.skillbox.social_network_authorization.entity.RefreshToken;
@@ -15,9 +13,9 @@ import ru.skillbox.social_network_authorization.security.AppUserDetails;
 import ru.skillbox.social_network_authorization.security.jwt.JwtUtils;
 import ru.skillbox.social_network_authorization.service.AuthService;
 import ru.skillbox.social_network_authorization.service.RefreshTokenService;
-import ru.skillbox.social_network_authorization.web.model.AuthenticateRq;
-import ru.skillbox.social_network_authorization.web.model.RecoveryPasswordLinkRq;
-import ru.skillbox.social_network_authorization.web.model.SetPasswordRq;
+import ru.skillbox.social_network_authorization.dto.AuthenticateRq;
+import ru.skillbox.social_network_authorization.dto.RecoveryPasswordLinkRq;
+import ru.skillbox.social_network_authorization.dto.SetPasswordRq;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

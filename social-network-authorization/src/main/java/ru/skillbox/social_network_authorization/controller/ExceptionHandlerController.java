@@ -1,7 +1,7 @@
-package ru.skillbox.social_network_authorization.web.controller;
+package ru.skillbox.social_network_authorization.controller;
 
 import ru.skillbox.social_network_authorization.exception.*;
-import ru.skillbox.social_network_authorization.web.model.ErrorResponse;
+import ru.skillbox.social_network_authorization.dto.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

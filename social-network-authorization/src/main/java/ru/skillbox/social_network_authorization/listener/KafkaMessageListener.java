@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
-import ru.skillbox.social_network_authorization.web.model.kafka.CreatedAccountEventDto;
+import ru.skillbox.social_network_authorization.dto.kafka.CreatedAccountEventDto;
 
 @Component
 @Slf4j

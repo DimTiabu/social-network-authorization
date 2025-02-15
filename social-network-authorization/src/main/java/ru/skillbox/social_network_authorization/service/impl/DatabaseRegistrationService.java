@@ -1,5 +1,6 @@
 package ru.skillbox.social_network_authorization.service.impl;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.skillbox.social_network_authorization.exception.EntityNotFoundException;
 import ru.skillbox.social_network_authorization.entity.User;
 import ru.skillbox.social_network_authorization.repository.UserRepository;
@@ -11,16 +12,17 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DatabaseRegistrationService implements RegistrationService {
     private final UserRepository userRepository;
-//    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     public User registerUser(User user) {
         String email = user.getEmail();
+
         if (userRepository.findByEmail(email).isPresent()) {
             throw new EntityNotFoundException(
                     "Пользователь с электронной почтой " + email + " уже существует");
         }
 
-//        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         return userRepository.save(user);
     }

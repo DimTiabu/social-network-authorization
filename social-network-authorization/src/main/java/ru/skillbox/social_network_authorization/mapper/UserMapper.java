@@ -1,7 +1,7 @@
 package ru.skillbox.social_network_authorization.mapper;
 
 import ru.skillbox.social_network_authorization.entity.User;
-import ru.skillbox.social_network_authorization.web.model.RegistrationDto;
+import ru.skillbox.social_network_authorization.dto.RegistrationDto;
 import org.mapstruct.DecoratedWith;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;

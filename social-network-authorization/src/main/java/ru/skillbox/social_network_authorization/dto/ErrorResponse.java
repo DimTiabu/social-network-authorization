@@ -1,4 +1,4 @@
-package ru.skillbox.social_network_authorization.web.model;
+package ru.skillbox.social_network_authorization.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

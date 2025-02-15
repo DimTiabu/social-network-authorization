@@ -1,9 +1,9 @@
-package ru.skillbox.social_network_authorization.web.controller.impl;
+package ru.skillbox.social_network_authorization.controller;
 
 import ru.skillbox.social_network_authorization.service.AuthService;
-import ru.skillbox.social_network_authorization.web.model.AuthenticateRq;
-import ru.skillbox.social_network_authorization.web.model.RecoveryPasswordLinkRq;
-import ru.skillbox.social_network_authorization.web.model.SetPasswordRq;
+import ru.skillbox.social_network_authorization.dto.AuthenticateRq;
+import ru.skillbox.social_network_authorization.dto.RecoveryPasswordLinkRq;
+import ru.skillbox.social_network_authorization.dto.SetPasswordRq;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -37,3 +37,8 @@ app:
     secret: "someSecretKey"
     tokenExpiration: 3m
     refreshTokenExpiration: 30m
+#logging:
+#  level:
+#    org:
+#      springframework:
+#        boot: DEBUG

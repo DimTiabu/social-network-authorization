@@ -1,4 +1,4 @@
-package ru.skillbox.social_network_authorization.web.controller.impl;
+package ru.skillbox.social_network_authorization.controller;
 
 import ru.skillbox.social_network_authorization.service.CaptchaService;
 import lombok.RequiredArgsConstructor;

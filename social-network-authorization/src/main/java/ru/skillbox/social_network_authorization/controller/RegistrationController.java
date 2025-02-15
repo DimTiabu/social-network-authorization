@@ -1,15 +1,13 @@
-package ru.skillbox.social_network_authorization.web.controller.impl;
+package ru.skillbox.social_network_authorization.controller;
 
-import org.springframework.beans.factory.annotation.Value;
 import ru.skillbox.social_network_authorization.mapper.UserMapper;
+import ru.skillbox.social_network_authorization.service.KafkaMessageService;
 import ru.skillbox.social_network_authorization.service.RegistrationService;
-import ru.skillbox.social_network_authorization.web.model.RegistrationDto;
+import ru.skillbox.social_network_authorization.dto.RegistrationDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
-import ru.skillbox.social_network_authorization.web.model.kafka.RegistrationEventDto;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -17,9 +15,7 @@ import ru.skillbox.social_network_authorization.web.model.kafka.RegistrationEven
 public class RegistrationController {
     private final RegistrationService databaseRegistrationService;
     private final UserMapper userMapper;
-    private final KafkaTemplate<String, RegistrationEventDto> kafkaTemplate;
-    @Value("${app.kafka.topicProducer}")
-    private String topicName;
+    private final KafkaMessageService kafkaMessageService;
 
     @PostMapping("/register")
     public ResponseEntity<String> register(
@@ -27,12 +23,7 @@ public class RegistrationController {
         databaseRegistrationService.registerUser(
                 userMapper.registrationDtoToUser(registrationDto));
 
-        kafkaTemplate.send(topicName,
-                RegistrationEventDto.builder()
-                        .email(registrationDto.getEmail())
-                        .firstName(registrationDto.getFirstName())
-                        .lastName(registrationDto.getLastName())
-                        .build());
+        kafkaMessageService.sendMessageWithUserData(registrationDto);
 
         return ResponseEntity.ok("Успешная регистрация");
     }

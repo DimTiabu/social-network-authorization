@@ -1,4 +1,4 @@
-package ru.skillbox.social_network_authorization.web.model.kafka;
+package ru.skillbox.social_network_authorization.dto.kafka;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

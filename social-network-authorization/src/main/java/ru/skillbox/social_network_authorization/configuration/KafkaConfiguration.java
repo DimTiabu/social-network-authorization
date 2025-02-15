@@ -12,8 +12,8 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import ru.skillbox.social_network_authorization.web.model.kafka.CreatedAccountEventDto;
-import ru.skillbox.social_network_authorization.web.model.kafka.RegistrationEventDto;
+import ru.skillbox.social_network_authorization.dto.kafka.CreatedAccountEventDto;
+import ru.skillbox.social_network_authorization.dto.kafka.RegistrationEventDto;
 
 import java.util.HashMap;
 import java.util.Map;
