@@ -1,95 +1,81 @@
 package ru.skillbox.social_network_authorization.controller;
 
+import org.springframework.web.bind.annotation.ResponseStatus;
 import ru.skillbox.social_network_authorization.exception.*;
 import ru.skillbox.social_network_authorization.dto.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @Slf4j
+@ResponseStatus(HttpStatus.BAD_REQUEST)
 @RestControllerAdvice
 public class ExceptionHandlerController {
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponse> notFound(
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse notFound(
             EntityNotFoundException ex) {
         log.error("Ошибка при попытке получить сущность", ex);
-        return new ResponseEntity<>(
-                new ErrorResponse(
+        return new ErrorResponse(
                         HttpStatus.NOT_FOUND.value(),
-                        ex.getMessage()),
-                HttpStatus.NOT_FOUND);
+                        ex.getMessage());
     }
 
     @ExceptionHandler(PasswordsDoNotMatchException.class)
-    public ResponseEntity<ErrorResponse> passwordsDoNotMatch(PasswordsDoNotMatchException ex) {
+    public ErrorResponse passwordsDoNotMatch(PasswordsDoNotMatchException ex) {
         log.error(ex.getMessage());
-        return new ResponseEntity<>(
-                new ErrorResponse(
+        return new ErrorResponse(
                         HttpStatus.BAD_REQUEST.value(),
-                        ex.getMessage()),
-                HttpStatus.BAD_REQUEST);
+                        ex.getMessage());
     }
 
     @ExceptionHandler(InvalidPasswordException.class)
-    public ResponseEntity<ErrorResponse> passwordsDoNotMatch(InvalidPasswordException ex) {
+    public ErrorResponse passwordsDoNotMatch(InvalidPasswordException ex) {
         log.error(ex.getMessage());
-        return new ResponseEntity<>(
-                new ErrorResponse(
+        return new ErrorResponse(
                         HttpStatus.BAD_REQUEST.value(),
-                        ex.getMessage()),
-                HttpStatus.BAD_REQUEST);
+                        ex.getMessage());
     }
 
     @ExceptionHandler(RefreshTokenException.class)
-    public ResponseEntity<ErrorResponse> passwordsDoNotMatch(RefreshTokenException ex) {
+    public ErrorResponse passwordsDoNotMatch(RefreshTokenException ex) {
         log.error(ex.getMessage());
-        return new ResponseEntity<>(
-                new ErrorResponse(
+        return new ErrorResponse(
                         HttpStatus.BAD_REQUEST.value(),
-                        ex.getMessage()),
-                HttpStatus.BAD_REQUEST);
+                        ex.getMessage());
     }
 
     @ExceptionHandler(AlreadyExistsException.class)
-    public ResponseEntity<ErrorResponse> passwordsDoNotMatch(AlreadyExistsException ex) {
+    public ErrorResponse passwordsDoNotMatch(AlreadyExistsException ex) {
         log.error(ex.getMessage());
-        return new ResponseEntity<>(
-                new ErrorResponse(
+        return new ErrorResponse(
                         HttpStatus.BAD_REQUEST.value(),
-                        ex.getMessage()),
-                HttpStatus.BAD_REQUEST);
+                        ex.getMessage());
     }
 
     @ExceptionHandler(SecurityException.class)
-    public ResponseEntity<ErrorResponse> noAccess(
+    public ErrorResponse noAccess(
             SecurityException ex) {
         log.error("Ошибка! Недостаточно прав!", ex);
-        return new ResponseEntity<>(
-                new ErrorResponse(
+        return new ErrorResponse(
                         HttpStatus.FORBIDDEN.value(),
-                        ex.getMessage()),
-                HttpStatus.FORBIDDEN);
+                        ex.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> illegalArgument(IllegalArgumentException ex) {
+    public ErrorResponse illegalArgument(IllegalArgumentException ex) {
         log.error(ex.getMessage());
-        return new ResponseEntity<>(
-                new ErrorResponse(
+        return new ErrorResponse(
                         HttpStatus.BAD_REQUEST.value(),
-                        ex.getMessage()),
-                HttpStatus.BAD_REQUEST);
+                        ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> anyException(Exception ex) {
+    public ErrorResponse anyException(Exception ex) {
         log.error(ex.getMessage());
-        return new ResponseEntity<>(
-                new ErrorResponse(
+        return new ErrorResponse(
                         HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                        ex.getMessage()),
-                HttpStatus.INTERNAL_SERVER_ERROR);
+                        ex.getMessage());
     }
 }

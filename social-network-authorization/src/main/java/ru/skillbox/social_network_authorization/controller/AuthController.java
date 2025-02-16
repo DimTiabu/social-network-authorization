@@ -5,7 +5,6 @@ import ru.skillbox.social_network_authorization.dto.AuthenticateRq;
 import ru.skillbox.social_network_authorization.dto.RecoveryPasswordLinkRq;
 import ru.skillbox.social_network_authorization.dto.SetPasswordRq;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,20 +15,19 @@ public class AuthController {
     private final AuthService databaseAuthService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthenticateRq request) {
-
-        return ResponseEntity.ok(databaseAuthService.authenticate(request));
+    public String login(@RequestBody AuthenticateRq request) {
+        return databaseAuthService.authenticate(request);
     }
 
     @PostMapping("/password/recovery")
-    public ResponseEntity<?> recoverPassword(@RequestBody RecoveryPasswordLinkRq request) {
-        return ResponseEntity.ok(databaseAuthService.sendRecoveryEmail(request));
+    public String recoverPassword(@RequestBody RecoveryPasswordLinkRq request) {
+        return databaseAuthService.sendRecoveryEmail(request);
     }
 
     @PostMapping("/password/recovery/{recoveryLink}")
-    public ResponseEntity<?> setNewPassword(@PathVariable String recoveryLink,
-                                            @RequestBody SetPasswordRq request) {
-        return ResponseEntity.ok(databaseAuthService.updatePassword(recoveryLink, request));
+    public String setNewPassword(@PathVariable String recoveryLink,
+                                 @RequestBody SetPasswordRq request) {
+        return databaseAuthService.updatePassword(recoveryLink, request);
     }
 
 }

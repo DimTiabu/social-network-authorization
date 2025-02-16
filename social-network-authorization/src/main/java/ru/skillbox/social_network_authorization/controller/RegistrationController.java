@@ -6,7 +6,6 @@ import ru.skillbox.social_network_authorization.service.RegistrationService;
 import ru.skillbox.social_network_authorization.dto.RegistrationDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,13 +17,13 @@ public class RegistrationController {
     private final KafkaMessageService kafkaMessageService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(
+    public String register(
             @RequestBody @Valid RegistrationDto registrationDto) {
         databaseRegistrationService.registerUser(
                 userMapper.registrationDtoToUser(registrationDto));
 
         kafkaMessageService.sendMessageWithUserData(registrationDto);
 
-        return ResponseEntity.ok("Успешная регистрация");
+        return "Успешная регистрация";
     }
 }

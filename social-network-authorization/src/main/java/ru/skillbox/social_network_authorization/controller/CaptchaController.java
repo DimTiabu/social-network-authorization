@@ -2,7 +2,6 @@ package ru.skillbox.social_network_authorization.controller;
 
 import ru.skillbox.social_network_authorization.service.CaptchaService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,7 +14,7 @@ public class CaptchaController {
     private final CaptchaService databaseCaptchaService;
 
     @GetMapping("/captcha")
-    public ResponseEntity<?> generateCaptcha() {
-        return ResponseEntity.ok(databaseCaptchaService.generateCaptcha());
+    public String generateCaptcha() {
+        return databaseCaptchaService.generateCaptcha();
     }
 }

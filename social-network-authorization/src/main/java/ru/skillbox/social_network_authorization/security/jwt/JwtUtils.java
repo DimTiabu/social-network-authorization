@@ -1,14 +1,11 @@
 package ru.skillbox.social_network_authorization.security.jwt;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.skillbox.social_network_authorization.security.AppUserDetails;
 
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.time.Duration;
 import java.util.Date;
 
@@ -22,39 +19,36 @@ public class JwtUtils {
     @Value("${app.jwt.tokenExpiration}")
     private Duration tokenExpiration;
 
-    private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-    }
-
-
-    public String generateJwtToken(AppUserDetails userDetails){
-       return Jwts.builder()
-               .claim("sub", userDetails.getUsername())
+    public String generateJwtToken(AppUserDetails userDetails) {
+        return Jwts.builder()
+                .claim("sub", userDetails.getUsername())
                 .claim("userId", userDetails.getId())
+                .claim("roles", userDetails.getAuthorities())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(new Date().getTime() + tokenExpiration.toMillis()))
-                .signWith(getSigningKey())
+                .setHeaderParam("typ", "JWT")
+                .signWith(SignatureAlgorithm.HS256, jwtSecret)
                 .compact();
     }
 
-    public String getUsername(String token){
-        return Jwts.parser().setSigningKey(jwtSecret).build()
+    public String getUsername(String token) {
+        return Jwts.parser().setSigningKey(jwtSecret)
                 .parseClaimsJws(token).getBody().getSubject();
     }
 
-    public boolean validate(String authToken){
+    public boolean validate(String authToken) {
         try {
-            Jwts.parser().setSigningKey(jwtSecret).build().parseClaimsJws(authToken);
-            return  true;
-        } catch (SignatureException e){
+            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
+            return true;
+        } catch (SignatureException e) {
             log.error("Invalid signature: {}", e.getMessage());
-        } catch (MalformedJwtException e){
+        } catch (MalformedJwtException e) {
             log.error("Invalid token: {}", e.getMessage());
-        } catch (ExpiredJwtException e){
+        } catch (ExpiredJwtException e) {
             log.error("Token is expired: {}", e.getMessage());
-        }catch (UnsupportedJwtException e){
+        } catch (UnsupportedJwtException e) {
             log.error("Token is unsupported: {}", e.getMessage());
-        }catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             log.error("Claims string is empty: {}", e.getMessage());
         }
         return false;
