@@ -15,13 +15,14 @@ spring:
       host: localhost
   datasource:
     url: jdbc:postgresql://localhost:5432/authorization_db
-    #    username: postgre_user
-    #    password: postgre_secret_password
     username: postgres
     password: postgres
+#    url: jdbc:postgresql://91.197.98.213:5432/authorization_db?currentSchema=schema_authorization
+#    username: postgre_user
+#    password: postgre_secret_password
     hikari:
-      schema: auth_schema
-      connection-init-sql: create schema if not exists auth_schema
+      schema: schema_authorization
+      connection-init-sql: create schema if not exists schema_authorization
       connection-timeout: 10000
   liquibase:
     change_log: classpath:db/changelog/db.changelog-master.xml

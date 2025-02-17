@@ -6,7 +6,7 @@
                         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.6.xsd">
 
     <changeSet id="1-create-users-table" author="Dmitry Tiabutov">
-        <createTable tableName="users">
+        <createTable tableName="users" schemaName="schema_authorization">
             <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -22,7 +22,7 @@
     </changeSet>
 
     <changeSet id="2-create-user-roles-table" author="Dmitry Tiabutov">
-        <createTable tableName="user_roles">
+        <createTable tableName="user_roles" schemaName="schema_authorization">
             <column name="user_id" type="UUID">
                 <constraints nullable="false"/>
             </column>

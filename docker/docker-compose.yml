@@ -1,10 +1,10 @@
 version: '3'
 services:
-  #  frontend:
-  #    image: pashtet33/myfrontend:v1.0
-  #    ports:
-  #      - "80:80"
-  #    restart: always
+#  frontend:
+#    image: pashtet33/myfrontend:v1.0
+#    ports:
+#      - "80:80"
+#    restart: always
   postgres:
     image: postgres:12.3
     ports:
@@ -12,8 +12,8 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      #      - POSTGRES_USER=postgre_user
-      #      - POSTGRES_PASSWORD=postgre_secret_password
+#      - POSTGRES_USER=postgre_user
+#      - POSTGRES_PASSWORD=postgre_secret_password
       - POSTGRES_DB=authorization_db
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql

@@ -1,6 +1,6 @@
 package ru.skillbox.social_network_authorization.controller;
 
-import ru.skillbox.social_network_authorization.mapper.UserMapper;
+import ru.skillbox.social_network_authorization.mapper.UserMapperFactory;
 import ru.skillbox.social_network_authorization.service.KafkaMessageService;
 import ru.skillbox.social_network_authorization.service.RegistrationService;
 import ru.skillbox.social_network_authorization.dto.RegistrationDto;
@@ -13,14 +13,13 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class RegistrationController {
     private final RegistrationService databaseRegistrationService;
-    private final UserMapper userMapper;
     private final KafkaMessageService kafkaMessageService;
 
     @PostMapping("/register")
     public String register(
             @RequestBody @Valid RegistrationDto registrationDto) {
         databaseRegistrationService.registerUser(
-                userMapper.registrationDtoToUser(registrationDto));
+                UserMapperFactory.registrationDtoToUser(registrationDto));
 
         kafkaMessageService.sendMessageWithUserData(registrationDto);
 
