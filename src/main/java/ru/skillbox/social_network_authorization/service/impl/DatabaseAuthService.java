@@ -1,5 +1,6 @@
 package ru.skillbox.social_network_authorization.service.impl;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -20,6 +21,18 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Properties;
+import java.util.Random;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
 @Service
 @RequiredArgsConstructor
 public class DatabaseAuthService implements AuthService {
@@ -29,10 +42,13 @@ public class DatabaseAuthService implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Value("${app.mail.user}")
+    private String mailUsername;
+    @Value("${app.mail.password}")
+    private String mailPassword;
+
     public String authenticate(AuthenticateRq request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Пользователь не зарегистрирован"));
+        User user = findUserByEmail(request.getEmail());
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new InvalidPasswordException();
@@ -57,15 +73,69 @@ public class DatabaseAuthService implements AuthService {
     }
 
     public String sendRecoveryEmail(RecoveryPasswordLinkRq request) {
-        // Здесь нужно добавить логику отправки писем
-        System.out.println("Отправляем письмо на: " + request.getEmail());
-        System.out.println("Код восстановления: " + request.getTemp());
+        // Логика отправки письма с использованием SMTP
+        Properties prop = new Properties();
+        prop.put("mail.smtp.auth", "true");
+        prop.put("mail.smtp.host", "smtp.mail.ru"); // Замените на ваш SMTP-сервер
+        prop.put("mail.smtp.port", "587"); // Замените на порт вашего SMTP-сервера
+        prop.put("mail.smtp.starttls.enable", "true");
+
+        Session session = Session.getInstance(prop, new javax.mail.Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(mailUsername, mailPassword); // Замените на ваши учётные данные
+            }
+        });
+
+
+        try {
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(mailUsername)); // Замените на ваш адрес электронной почты
+            message.setRecipient(Message.RecipientType.TO, new InternetAddress(request.getEmail()));
+            message.setSubject("Восстановление пароля");
+
+            String recoveryUrl = "http://91.197.98.213/api/v1/auth/password/recovery/" + request.getTemp();
+            message.setText("Ваша ссылка для восстановления пароля: " + recoveryUrl);
+            Transport.send(message);
+
+            System.out.println("Письмо успешно отправлено на адрес: " + request.getEmail());
+
+        } catch (MessagingException e) {
+            System.err.println("Ошибка при отправке письма: " + e.getMessage());
+            return "ERROR";
+        }
+
+        User user = findUserByEmail(request.getEmail());
+        user.setToken(request.getTemp());
+        userRepository.save(user);
+
         return "OK";
     }
 
     public String updatePassword(String recoveryLink, SetPasswordRq request) {
-        System.out.println("Обновление пароля");
-        // Логика изменения пароля
+// Сравниваем токен из URL с кодом, указанным пользователем (temp)
+        if (!recoveryLink.equals(request.getTemp())) {
+            System.err.println("Код восстановления не совпадает с ожидаемым");
+            return "ERROR: Неверный код восстановления";
+        }
+
+        User user = userRepository.findByToken(recoveryLink)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Пользователь не найден для токена: "
+                                + recoveryLink));
+
+        user.setPassword(
+                passwordEncoder.encode(
+                        request.getPassword()));
+        user.setToken(null);
+        userRepository.save(user);
+
+        System.out.println("Пароль успешно обновлен для пользователя: " + user.getEmail());
         return "OK";
+    }
+
+    private User findUserByEmail(String email){
+        return userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Пользователь не зарегистрирован"));
     }
 }

@@ -7,9 +7,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface AuthService {
-    String sendRecoveryEmail(RecoveryPasswordLinkRq request);
-
     String authenticate(AuthenticateRq request);
+
+    String sendRecoveryEmail(RecoveryPasswordLinkRq request);
 
     String updatePassword(String recoveryLink, SetPasswordRq request);
 }

@@ -5,10 +5,10 @@ import lombok.Data;
 
 @Data
 public class SetPasswordRq {
-    @NotBlank(message = "Заполните поле \"temp\"")
+    @NotBlank(message = "Введите код восстановления")
     private String temp;
 
-    @NotBlank
+    @NotBlank(message = "Введите новый пароль")
     private String password;
 
 }

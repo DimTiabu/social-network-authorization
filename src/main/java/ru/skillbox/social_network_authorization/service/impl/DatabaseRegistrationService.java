@@ -14,7 +14,7 @@ public class DatabaseRegistrationService implements RegistrationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public User registerUser(User user) {
+    public void registerUser(User user) {
         String email = user.getEmail();
 
         if (userRepository.findByEmail(email).isPresent()) {
@@ -24,6 +24,6 @@ public class DatabaseRegistrationService implements RegistrationService {
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        return userRepository.save(user);
+        userRepository.save(user);
     }
 }

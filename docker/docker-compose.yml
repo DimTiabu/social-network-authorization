@@ -36,7 +36,7 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     ports:
-      - "2181:2181"
+      - "32181:2181"
   redis:
     image: redis:7.0.12
     ports:

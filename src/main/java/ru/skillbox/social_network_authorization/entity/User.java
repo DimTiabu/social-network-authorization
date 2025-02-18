@@ -12,6 +12,9 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Entity(name = "users")
+@Table(name = "users", indexes = {
+        @Index(name = "idx_email", columnList = "email")
+})
 public class User {
     @Id
     @Column(name = "id")
@@ -27,6 +30,7 @@ public class User {
     @Column(name = "account_id")
     private UUID accountId;
 
+    @Column(unique = true)
     private String token;
 
     @ElementCollection(targetClass = UserRole.class, fetch = FetchType.EAGER)

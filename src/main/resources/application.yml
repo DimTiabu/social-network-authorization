@@ -38,8 +38,12 @@ app:
     secret: "someSecretKey"
     tokenExpiration: 3m
     refreshTokenExpiration: 30m
+  mail:
+    user: tdsuser45@mail.ru
+    password: n3c421ZcGyinuqdKJyie
 #logging:
 #  level:
 #    org:
 #      springframework:
 #        boot: DEBUG
+
