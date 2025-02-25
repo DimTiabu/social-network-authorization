@@ -28,6 +28,12 @@ spring:
     change_log: classpath:db/changelog/db.changelog-master.xml
     enabled: true
     drop-first: true
+  cloud:
+    config:
+      discovery:
+        enabled: true
+        service-id: config-service
+      fail-fast: true
 
 app:
   kafka:
@@ -41,6 +47,19 @@ app:
   mail:
     user: tdsuser45@mail.ru
     password: n3c421ZcGyinuqdKJyie
+
+eureka:
+  client:
+    serviceUrl:
+      #Prod
+      defaultZone: http://discovery-service:8761/eureka
+      #Local
+#      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
+    enabled: true
+  instance:
+    preferIpAddress: true  # Регистрировать IP-адрес контейнера в Eureka
+
+
 #logging:
 #  level:
 #    org:

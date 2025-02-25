@@ -1,12 +1,11 @@
 package ru.skillbox.social_network_authorization.dto.kafka;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreatedAccountEventDto {

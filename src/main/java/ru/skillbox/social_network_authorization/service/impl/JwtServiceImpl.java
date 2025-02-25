@@ -1,17 +1,18 @@
-package ru.skillbox.social_network_authorization.security.jwt;
+package ru.skillbox.social_network_authorization.service.impl;
 
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.skillbox.social_network_authorization.security.AppUserDetails;
+import ru.skillbox.social_network_authorization.service.JwtService;
 
 import java.time.Duration;
 import java.util.Date;
 
 @Component
 @Slf4j
-public class JwtUtils {
+public class JwtServiceImpl implements JwtService {
 
     @Value("${app.jwt.secret}")
     private String jwtSecret;

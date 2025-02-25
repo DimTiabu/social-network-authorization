@@ -2,9 +2,11 @@ package ru.skillbox.social_network_authorization.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class AuthenticateRq {
     @NotBlank
     @Email

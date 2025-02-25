@@ -1,6 +1,6 @@
 version: '3'
 services:
-#  frontend:
+#  frontend-service:
 #    image: pashtet33/myfrontend:v1.0
 #    ports:
 #      - "80:80"
@@ -12,8 +12,8 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-#      - POSTGRES_USER=postgre_user
-#      - POSTGRES_PASSWORD=postgre_secret_password
+      #      - POSTGRES_USER=postgre_user
+      #      - POSTGRES_PASSWORD=postgre_secret_password
       - POSTGRES_DB=authorization_db
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -41,3 +41,42 @@ services:
     image: redis:7.0.12
     ports:
       - "6379:6379"
+
+  discovery-service:
+    image: pashtet33/discovery-service:latest
+    container_name: discovery-service
+    restart: always
+    ports:
+      - "8761:8761"
+    networks:
+      - app-network
+
+  config-service:
+    image: pashtet33/config-service:latest
+    container_name: config-service
+    restart: always
+    ports:
+      - "8888:8888"
+    networks:
+      - app-network
+    depends_on:
+      - discovery-service
+
+  gateway-service:
+    image: pashtet33/gateway-service:latest
+    container_name: gateway-service
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    depends_on:
+      - config-service
+
+volumes:
+  database-data:
+  kafka:
+
+networks:
+  app-network:
+    driver: bridge

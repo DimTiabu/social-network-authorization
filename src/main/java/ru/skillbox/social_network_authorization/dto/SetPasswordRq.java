@@ -1,9 +1,11 @@
 package ru.skillbox.social_network_authorization.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class SetPasswordRq {
     @NotBlank(message = "Введите код восстановления")
     private String temp;

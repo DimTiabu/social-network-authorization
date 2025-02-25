@@ -12,14 +12,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class RegistrationController {
-    private final RegistrationService databaseRegistrationService;
+    private final RegistrationService registrationService;
     private final KafkaMessageService kafkaMessageService;
 
     @PostMapping("/register")
     public String register(
             @RequestBody @Valid RegistrationDto registrationDto) {
-        databaseRegistrationService.registerUser(
-                UserMapperFactory.registrationDtoToUser(registrationDto));
+        registrationService.registerUser(
+                UserMapperFactory.registrationDtoToUser(registrationDto),
+                registrationDto.getCode());
 
         kafkaMessageService.sendMessageWithUserData(registrationDto);
 

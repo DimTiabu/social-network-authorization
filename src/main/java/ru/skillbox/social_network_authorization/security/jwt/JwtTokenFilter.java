@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ru.skillbox.social_network_authorization.security.UserDetailsServiceImpl;
+import ru.skillbox.social_network_authorization.service.impl.JwtServiceImpl;
 
 import java.io.IOException;
 
@@ -23,7 +24,7 @@ import java.io.IOException;
 @Component
 public class JwtTokenFilter extends OncePerRequestFilter {
 
-    private final JwtUtils jwtUtils;
+    private final JwtServiceImpl jwtServiceImpl;
 
     private final UserDetailsServiceImpl userDetailsService;
 
@@ -34,8 +35,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try {
             String jwtToken = getToken(request);
-            if (jwtToken != null && jwtUtils.validate(jwtToken)) {
-                String username = jwtUtils.getUsername(jwtToken);
+            if (jwtToken != null && jwtServiceImpl.validate(jwtToken)) {
+                String username = jwtServiceImpl.getUsername(jwtToken);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
