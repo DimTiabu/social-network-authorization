@@ -1,10 +1,5 @@
 version: '3'
 services:
-#  frontend-service:
-#    image: pashtet33/myfrontend:v1.0
-#    ports:
-#      - "80:80"
-#    restart: always
   postgres:
     image: postgres:12.3
     ports:
@@ -41,6 +36,12 @@ services:
     image: redis:7.0.12
     ports:
       - "6379:6379"
+
+#  frontend-service:
+#    image: pashtet33/myfrontend:v1.0
+#    ports:
+#      - "80:80"
+#    restart: always
 
   discovery-service:
     image: pashtet33/discovery-service:latest

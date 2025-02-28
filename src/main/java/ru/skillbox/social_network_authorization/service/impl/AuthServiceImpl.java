@@ -8,6 +8,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+import ru.skillbox.social_network_authorization.dto.AuthenticateResponse;
 import ru.skillbox.social_network_authorization.entity.RefreshToken;
 import ru.skillbox.social_network_authorization.entity.User;
 import ru.skillbox.social_network_authorization.exception.InvalidPasswordException;
@@ -50,7 +51,7 @@ public class AuthServiceImpl implements AuthService {
     @Value("${app.mail.password}")
     private String mailPassword;
 
-    public String authenticate(AuthenticateRq request) {
+    public AuthenticateResponse authenticate(AuthenticateRq request) {
         User user = findUserByEmail(request.getEmail());
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -67,15 +68,14 @@ public class AuthServiceImpl implements AuthService {
 
         AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
 
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
-        System.out.println("refreshToken " + refreshToken);
-
         String jwt = jwtServiceImpl.generateJwtToken(userDetails);
-        System.out.println("jwt " + jwt);
-        return "Успешный вход";
+
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
+
+        return new AuthenticateResponse(jwt, refreshToken);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public String sendRecoveryEmail(RecoveryPasswordLinkRq request) {
 
         User user = findUserByEmail(request.getEmail());

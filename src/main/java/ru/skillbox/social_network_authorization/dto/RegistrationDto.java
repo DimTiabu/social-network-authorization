@@ -29,6 +29,7 @@ public class RegistrationDto {
     @NotEmpty(message = "Заполните поле \"Code\"")
     private String code;
 
-    @NotEmpty(message = "Заполните поле \"Token\"")
-    private String token;
+    @Builder.Default
+    private String token = null;
+
 }

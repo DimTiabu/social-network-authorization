@@ -1,5 +1,6 @@
 package ru.skillbox.social_network_authorization.controller;
 
+import ru.skillbox.social_network_authorization.dto.AuthenticateResponse;
 import ru.skillbox.social_network_authorization.service.AuthService;
 import ru.skillbox.social_network_authorization.dto.AuthenticateRq;
 import ru.skillbox.social_network_authorization.dto.RecoveryPasswordLinkRq;
@@ -18,7 +19,7 @@ public class AuthController {
     private final JwtService jwtService;
 
     @PostMapping("/login")
-    public String login(@RequestBody AuthenticateRq request) {
+    public AuthenticateResponse login(@RequestBody AuthenticateRq request) {
         return authService.authenticate(request);
     }
 

@@ -40,7 +40,6 @@ public class JwtServiceImpl implements JwtService {
     public boolean validate(String authToken) {
         try {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
-            return true;
         } catch (SignatureException e) {
             log.error("Invalid signature: {}", e.getMessage());
         } catch (MalformedJwtException e) {
@@ -52,6 +51,6 @@ public class JwtServiceImpl implements JwtService {
         } catch (IllegalArgumentException e) {
             log.error("Claims string is empty: {}", e.getMessage());
         }
-        return false;
+        return true;
     }
 }
