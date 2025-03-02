@@ -20,7 +20,7 @@ public class RefreshToken {
     private UUID id;
 
     @Indexed
-    private UUID userId;
+    private UUID accountId;
 
     @Indexed
     private String token;

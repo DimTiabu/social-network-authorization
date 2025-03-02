@@ -15,7 +15,6 @@ import ru.skillbox.social_network_authorization.exception.InvalidPasswordExcepti
 import ru.skillbox.social_network_authorization.repository.UserRepository;
 import ru.skillbox.social_network_authorization.security.AppUserDetails;
 import ru.skillbox.social_network_authorization.service.AuthService;
-import ru.skillbox.social_network_authorization.service.RefreshTokenService;
 import ru.skillbox.social_network_authorization.dto.AuthenticateRq;
 import ru.skillbox.social_network_authorization.dto.RecoveryPasswordLinkRq;
 import ru.skillbox.social_network_authorization.dto.SetPasswordRq;
@@ -72,7 +71,7 @@ public class AuthServiceImpl implements AuthService {
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
 
-        return new AuthenticateResponse(jwt, refreshToken);
+        return new AuthenticateResponse(jwt, refreshToken.getToken());
     }
 
     @Transactional

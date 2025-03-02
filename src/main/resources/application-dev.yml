@@ -1,0 +1,35 @@
+server:
+  port: 0
+
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:91.197.98.213:9092}
+
+  datasource:
+    url: jdbc:postgresql://91.197.98.213:5432/authorization_db?currentSchema=schema_authorization
+    username: postgre_user
+    password: postgre_secret_password
+
+  liquibase:
+    drop-first: false
+
+  data:
+    redis:
+      host: 91.197.98.213
+
+  cloud:
+    config:
+      enabled: false
+#      import-check:
+#      discovery:
+#        enabled: true
+#        service-id: config-service
+#      fail-fast: true
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://91.197.98.213:8761/eureka/
+    enabled: true
+  instance:
+    preferIpAddress: true  # Регистрировать IP-адрес контейнера в Eureka

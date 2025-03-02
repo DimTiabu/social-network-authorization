@@ -1,0 +1,38 @@
+server:
+  port: 0
+
+spring:
+  kafka:
+    bootstrap-servers: localhost:29092
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/authorization_db
+    username: postgres
+    password: postgres
+
+  liquibase:
+    drop-first: false
+
+  data:
+    redis:
+      host: 91.197.98.213
+
+  cloud:
+    config:
+      import-check:
+        enabled: false
+      discovery:
+        enabled: true
+        service-id: config-service
+      fail-fast: true
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://91.197.98.213:8761/eureka/
+#      #Local
+##      defaultZone: http://host.docker.internal:8761/eureka/
+##      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
+    enabled: true
+  instance:
+    preferIpAddress: true  # Регистрировать IP-адрес контейнера в Eureka

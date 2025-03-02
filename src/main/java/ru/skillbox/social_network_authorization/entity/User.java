@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,5 +40,6 @@ public class User {
     @Column(name = "roles", nullable = false)
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private List<UserRole> roles = new ArrayList<>();
+    private List<UserRole> roles = new ArrayList<>(
+            Collections.singletonList(UserRole.ROLE_USER));
 }

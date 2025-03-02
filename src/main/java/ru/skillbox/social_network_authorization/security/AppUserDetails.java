@@ -15,7 +15,7 @@ public class AppUserDetails implements UserDetails {
     private final User user;
 
     public UUID getId(){
-        return user.getId();
+        return user.getAccountId();
     }
 
     public String getEmail(){

@@ -10,6 +10,8 @@ import ru.skillbox.social_network_authorization.service.RegistrationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class RegistrationServiceImpl implements RegistrationService {
@@ -34,6 +36,9 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // Удалить следующую строку, когда подключится сервис Дарьи
+        user.setAccountId(UUID.randomUUID());
 
         userRepository.save(user);
     }

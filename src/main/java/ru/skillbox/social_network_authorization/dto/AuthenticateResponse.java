@@ -12,5 +12,5 @@ import ru.skillbox.social_network_authorization.entity.RefreshToken;
 @AllArgsConstructor
 public class AuthenticateResponse {
     private String accessToken;
-    private RefreshToken refreshToken;
+    private String refreshToken;
 }

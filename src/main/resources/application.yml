@@ -1,41 +1,31 @@
-server:
-  port: 8081
-
 spring:
   application:
-    name: auth-service
-  kafka:
-    bootstrap-servers: localhost:9092
+    name: AUTH-SERVICE
+
+  profiles:
+    active: dev
+#    active: test
+#    active: testEureka
+
+  datasource:
+    hikari:
+     schema: schema_authorization
+     connection-init-sql: create schema if not exists schema_authorization
+     connection-timeout: 10000
+
+  liquibase:
+    change_log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+
+  data:
+    redis:
+      port: 6379
+
   main:
     allow-circular-references: true
   jpa:
     generate-ddl: false
     open-in-view: true
-  data:
-    redis:
-      port: 6379
-      host: localhost
-  datasource:
-#    url: jdbc:postgresql://localhost:5432/authorization_db
-#    username: postgres
-#    password: postgres
-    url: jdbc:postgresql://91.197.98.213:5432/authorization_db?currentSchema=schema_authorization
-    username: postgre_user
-    password: postgre_secret_password
-    hikari:
-      schema: schema_authorization
-      connection-init-sql: create schema if not exists schema_authorization
-      connection-timeout: 10000
-  liquibase:
-    change_log: classpath:db/changelog/db.changelog-master.xml
-    enabled: true
-    drop-first: false
-  cloud:
-    config:
-      discovery:
-        enabled: false
-        service-id: config-service
-      fail-fast: true
 
 app:
   kafka:
@@ -50,22 +40,6 @@ app:
     user: tdsuser45@mail.ru
     password: n3c421ZcGyinuqdKJyie
 
-eureka:
-  client:
-    serviceUrl:
-      #Prod
-#      defaultZone: http://discovery-service:8761/eureka
-      defaultZone: http://host.docker.internal:8761/eureka/
-      #Local
-#      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
-    enabled: true
-  instance:
-    preferIpAddress: true  # Регистрировать IP-адрес контейнера в Eureka
-
-
 #logging:
 #  level:
-#    org:
-#      springframework:
-#        boot: DEBUG
-
+#    root: debug

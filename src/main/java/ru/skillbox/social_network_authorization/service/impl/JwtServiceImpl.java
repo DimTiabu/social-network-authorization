@@ -23,7 +23,7 @@ public class JwtServiceImpl implements JwtService {
     public String generateJwtToken(AppUserDetails userDetails) {
         return Jwts.builder()
                 .claim("sub", userDetails.getUsername())
-                .claim("userId", userDetails.getId())
+                .claim("accountId", userDetails.getId())
                 .claim("roles", userDetails.getAuthorities())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(new Date().getTime() + tokenExpiration.toMillis()))

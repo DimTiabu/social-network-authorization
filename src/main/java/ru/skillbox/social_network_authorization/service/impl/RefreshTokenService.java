@@ -1,5 +1,7 @@
-package ru.skillbox.social_network_authorization.service;
+package ru.skillbox.social_network_authorization.service.impl;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -9,12 +11,16 @@ import ru.skillbox.social_network_authorization.repository.RefreshTokenRepositor
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenService {
+
+    @Value("${app.jwt.secret}")
+    private String jwtSecret;
 
     @Value("${app.jwt.refreshTokenExpiration}")
     private Duration refreshTokenExpiration;
@@ -25,20 +31,26 @@ public class RefreshTokenService {
         return refreshTokenRepository.findByToken(token);
     }
 
-    public RefreshToken createRefreshToken(UUID userId){
-        var refreshToken =  RefreshToken.builder()
-                .userId(userId)
+    public RefreshToken createRefreshToken(UUID accountId) {
+        String token = Jwts.builder()
+                .claim("accountId", accountId)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration.toMillis()))
+                .setHeaderParam("typ", "Refresh")
+                .signWith(SignatureAlgorithm.HS256, jwtSecret)
+                .compact();
+
+        RefreshToken refreshToken = RefreshToken.builder()
+                .accountId(accountId)
                 .expiryDate(Instant.now().plusMillis(refreshTokenExpiration.toMillis()))
-                .token(UUID.randomUUID().toString())
+                .token(token)
                 .build();
 
-        refreshToken = refreshTokenRepository.save(refreshToken);
-
-        return refreshToken;
+        return refreshTokenRepository.save(refreshToken);
     }
 
-    public RefreshToken checkRefreshToken(RefreshToken token){
-        if (token.getExpiryDate().compareTo(Instant.now()) < 0){
+    public RefreshToken checkRefreshToken(RefreshToken token) {
+        if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             refreshTokenRepository.delete(token);
             throw new RefreshTokenException(token.getToken(),
                     "Refresh token was expired. Repeat sign in action!");
@@ -47,7 +59,7 @@ public class RefreshTokenService {
         return token;
     }
 
-    public void deleteByUserId(UUID userId){
+    public void deleteByUserId(UUID userId) {
         refreshTokenRepository.deleteByUserId(userId);
     }
 }
