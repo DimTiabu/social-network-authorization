@@ -1,0 +1,13 @@
+databaseChangeLog:
+        - changeSet:
+                  id: 1-create-schema
+                  author: Dmitry Tiabutov
+                  changes:
+                          - sqlFile:
+                                    path: db/changelog/db-changelog-1-create-schema.sql
+        - changeSet:
+                  id: 2-create-tables
+                  author: Dmitry Tiabutov
+                  changes:
+                          - sqlFile:
+                                    path: db/changelog/db-changelog-2-create-tables.sql

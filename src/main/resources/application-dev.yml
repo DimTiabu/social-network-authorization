@@ -1,5 +1,5 @@
 server:
-  port: 0
+  port: 8087
 
 spring:
   kafka:
@@ -19,12 +19,12 @@ spring:
 
   cloud:
     config:
-      enabled: false
-#      import-check:
-#      discovery:
-#        enabled: true
-#        service-id: config-service
-#      fail-fast: true
+      import-check:
+        enabled: false
+      discovery:
+        enabled: true
+        service-id: config-service
+      fail-fast: true
 
 eureka:
   client:

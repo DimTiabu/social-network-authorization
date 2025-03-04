@@ -7,6 +7,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CaptchaDto {
-    private String token;
+    private String secret;
     private String image;
 }

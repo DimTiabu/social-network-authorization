@@ -26,7 +26,6 @@ public class RegistrationDto {
     @NotEmpty(message = "Заполните поле \"Фамилия\"")
     private String lastName;
 
-    @NotEmpty(message = "Заполните поле \"Code\"")
     private String code;
 
     @Builder.Default

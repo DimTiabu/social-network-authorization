@@ -19,19 +19,22 @@ public class CaptchaServiceImpl implements CaptchaService {
 
     public CaptchaDto generateCaptcha() {
         // Генерация токена капчи
-        String token = cage.getTokenGenerator().next();
+        String secret = cage.getTokenGenerator().next();
         ByteArrayOutputStream os = new ByteArrayOutputStream();
 
         try {
             // Рисуем капчу в поток байтов
-            cage.draw(token, os);
+            cage.draw(secret, os);
         } catch (IOException e) {
             throw new RuntimeException("Ошибка генерации капчи", e);
         }
 
+        //Временная заглушка для капчи
+//        secret = "";
+
         String image = Base64.getEncoder().encodeToString(os.toByteArray());
         // Создаем объект, содержащий токен и данные изображения
-        return new CaptchaDto(token, image);
+        return new CaptchaDto(secret, image);
     }
 
 }

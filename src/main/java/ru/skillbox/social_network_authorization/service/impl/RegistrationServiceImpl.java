@@ -21,7 +21,7 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     public void registerUser(User user, String code) {
 
-        CaptchaDto captcha = captchaServiceImpl.generateCaptcha();
+//        CaptchaDto captcha = captchaServiceImpl.generateCaptcha();
         // Проверка капчи: сравниваем значение, введённое пользователем (code),
         // с сгенерированным значением (token)
 //        if (!code.equalsIgnoreCase(captcha.getToken())) {

@@ -1,6 +1,6 @@
 spring:
   application:
-    name: AUTH-SERVICE
+    name: auth-service
 
   profiles:
     active: dev
@@ -14,7 +14,7 @@ spring:
      connection-timeout: 10000
 
   liquibase:
-    change_log: classpath:db/changelog/db.changelog-master.xml
+    change_log: classpath:db/changelog/db.changelog-master.yml
     enabled: true
 
   data:
