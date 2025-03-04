@@ -19,7 +19,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final PasswordEncoder passwordEncoder;
     private final CaptchaService captchaServiceImpl;
 
-    public void registerUser(User user, String code) {
+    public User registerUser(User user, String code) {
 
 //        CaptchaDto captcha = captchaServiceImpl.generateCaptcha();
         // Проверка капчи: сравниваем значение, введённое пользователем (code),
@@ -40,6 +40,6 @@ public class RegistrationServiceImpl implements RegistrationService {
         // Удалить следующую строку, когда подключится сервис Дарьи
         user.setAccountId(UUID.randomUUID());
 
-        userRepository.save(user);
+        return userRepository.save(user);
     }
 }

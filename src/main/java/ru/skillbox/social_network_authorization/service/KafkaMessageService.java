@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import ru.skillbox.social_network_authorization.dto.RegistrationDto;
 import ru.skillbox.social_network_authorization.dto.kafka.RegistrationEventDto;
 import ru.skillbox.social_network_authorization.entity.User;
 import ru.skillbox.social_network_authorization.repository.UserRepository;
@@ -20,12 +19,13 @@ public class KafkaMessageService {
     @Value("${app.kafka.topicProducer}")
     private String producerTopicName;
 
-    public void sendMessageWithUserData(RegistrationDto registrationDto) {
+    public void sendMessageWithUserData(RegistrationEventDto registrationEventDto) {
         kafkaTemplate.send(producerTopicName,
                 RegistrationEventDto.builder()
-                        .email(registrationDto.getEmail())
-                        .firstName(registrationDto.getFirstName())
-                        .lastName(registrationDto.getLastName())
+                        .userId(registrationEventDto.getUserId())
+                        .email(registrationEventDto.getEmail())
+                        .firstName(registrationEventDto.getFirstName())
+                        .lastName(registrationEventDto.getLastName())
                         .build());
     }
 

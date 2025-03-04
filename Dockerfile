@@ -1,8 +1,5 @@
 FROM openjdk:17-alpine3.14
 
-# Устанавливаем freetype через apk
-RUN apk update && apk add freetype
-
 # Создаем рабочую директорию внутри контейнера
 WORKDIR /app
 

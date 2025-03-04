@@ -1,5 +1,7 @@
 package ru.skillbox.social_network_authorization.controller;
 
+import ru.skillbox.social_network_authorization.dto.kafka.RegistrationEventDto;
+import ru.skillbox.social_network_authorization.entity.User;
 import ru.skillbox.social_network_authorization.mapper.UserMapperFactory;
 import ru.skillbox.social_network_authorization.service.KafkaMessageService;
 import ru.skillbox.social_network_authorization.service.RegistrationService;
@@ -18,11 +20,18 @@ public class RegistrationController {
     @PostMapping("/register")
     public String register(
             @RequestBody @Valid RegistrationDto registrationDto) {
-        registrationService.registerUser(
+        User user = registrationService.registerUser(
                 UserMapperFactory.registrationDtoToUser(registrationDto),
                 registrationDto.getCode());
 
-        kafkaMessageService.sendMessageWithUserData(registrationDto);
+        kafkaMessageService.sendMessageWithUserData(
+                RegistrationEventDto.builder()
+                        .userId(user.getId())
+                        .email(registrationDto.getEmail())
+                        .firstName(registrationDto.getFirstName())
+                        .lastName(registrationDto.getLastName())
+                        .build()
+        );
 
         return "Успешная регистрация";
     }
