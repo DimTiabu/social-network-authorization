@@ -20,5 +20,3 @@ public class RegistrationEventDto {
     private String lastName;
 
 }
-
-

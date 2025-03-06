@@ -3,7 +3,7 @@ package ru.skillbox.social_network_authorization.controller;
 import ru.skillbox.social_network_authorization.dto.kafka.RegistrationEventDto;
 import ru.skillbox.social_network_authorization.entity.User;
 import ru.skillbox.social_network_authorization.mapper.UserMapperFactory;
-import ru.skillbox.social_network_authorization.service.KafkaMessageService;
+import ru.skillbox.social_network_authorization.service.impl.KafkaMessageService;
 import ru.skillbox.social_network_authorization.service.RegistrationService;
 import ru.skillbox.social_network_authorization.dto.RegistrationDto;
 import jakarta.validation.Valid;

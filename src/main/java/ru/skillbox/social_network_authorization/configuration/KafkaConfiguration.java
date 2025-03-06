@@ -12,7 +12,6 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import ru.skillbox.social_network_authorization.dto.kafka.CreatedAccountEventDto;
 import ru.skillbox.social_network_authorization.dto.kafka.RegistrationEventDto;
 
 import java.util.HashMap;
@@ -44,13 +43,13 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public ConsumerFactory<String, CreatedAccountEventDto> kafkaMessageConsumerFactory(ObjectMapper objectMapper){
+    public ConsumerFactory<String, String> kafkaMessageConsumerFactory(ObjectMapper objectMapper){
 
         Map<String, Object> config = new HashMap<>();
 
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.GROUP_ID_CONFIG, kafkaMessageGroupId);
         config.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
 
@@ -58,10 +57,10 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, CreatedAccountEventDto> kafkaMessageConcurrentKafkaListenerContainerFactory(
-            ConsumerFactory<String, CreatedAccountEventDto> kafkaMessageConsumerFactory
+    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaMessageConcurrentKafkaListenerContainerFactory(
+            ConsumerFactory<String, String> kafkaMessageConsumerFactory
     ) {
-        ConcurrentKafkaListenerContainerFactory<String, CreatedAccountEventDto> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(kafkaMessageConsumerFactory);
 
         return factory;

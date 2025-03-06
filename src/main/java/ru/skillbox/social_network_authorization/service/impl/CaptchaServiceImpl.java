@@ -3,6 +3,7 @@ package ru.skillbox.social_network_authorization.service.impl;
 import com.github.cage.Cage;
 import com.github.cage.GCage;
 import ru.skillbox.social_network_authorization.dto.CaptchaDto;
+import ru.skillbox.social_network_authorization.exception.CaptchaException;
 import ru.skillbox.social_network_authorization.service.CaptchaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,15 +27,16 @@ public class CaptchaServiceImpl implements CaptchaService {
             // Рисуем капчу в поток байтов
             cage.draw(secret, os);
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка генерации капчи", e);
+            e.printStackTrace();
+            // Выводим стек трейс для анализа
+            throw new CaptchaException();
         }
 
         //Временная заглушка для капчи
-//        secret = "";
+        secret = "";
 
         String image = Base64.getEncoder().encodeToString(os.toByteArray());
         // Создаем объект, содержащий токен и данные изображения
         return new CaptchaDto(secret, image);
     }
-
 }

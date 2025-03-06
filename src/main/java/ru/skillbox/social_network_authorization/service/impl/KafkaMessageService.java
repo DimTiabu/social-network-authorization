@@ -1,4 +1,4 @@
-package ru.skillbox.social_network_authorization.service;
+package ru.skillbox.social_network_authorization.service.impl;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,9 @@
 package ru.skillbox.social_network_authorization.controller;
 
-import ru.skillbox.social_network_authorization.dto.AuthenticateResponse;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import ru.skillbox.social_network_authorization.dto.TokenResponse;
+import ru.skillbox.social_network_authorization.entity.RefreshToken;
+import ru.skillbox.social_network_authorization.security.AppUserDetails;
 import ru.skillbox.social_network_authorization.service.AuthService;
 import ru.skillbox.social_network_authorization.dto.AuthenticateRq;
 import ru.skillbox.social_network_authorization.dto.RecoveryPasswordLinkRq;
@@ -8,6 +11,7 @@ import ru.skillbox.social_network_authorization.dto.SetPasswordRq;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.skillbox.social_network_authorization.service.JwtService;
+import ru.skillbox.social_network_authorization.service.impl.RefreshTokenService;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -18,8 +22,10 @@ public class AuthController {
 
     private final JwtService jwtService;
 
+    private final RefreshTokenService refreshTokenService;
+
     @PostMapping("/login")
-    public AuthenticateResponse login(@RequestBody AuthenticateRq request) {
+    public TokenResponse login(@RequestBody AuthenticateRq request) {
         return authService.authenticate(request);
     }
 
@@ -37,5 +43,16 @@ public class AuthController {
     @GetMapping("/validate")
     public Boolean validateToken(@RequestParam String token){
         return jwtService.validate(token);
+    }
+
+    @PostMapping("/refresh")
+    public TokenResponse refreshToken(@RequestParam RefreshToken refreshToken,
+                                      @AuthenticationPrincipal AppUserDetails userDetails){
+        return refreshTokenService.refreshTokens(refreshToken, userDetails);
+    }
+
+    @PostMapping("/logout")
+    public String logoutUser(){
+        return refreshTokenService.logout();
     }
 }

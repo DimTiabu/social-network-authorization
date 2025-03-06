@@ -1,5 +1,6 @@
 package ru.skillbox.social_network_authorization.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -8,7 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import ru.skillbox.social_network_authorization.dto.AuthenticateResponse;
+import ru.skillbox.social_network_authorization.dto.TokenResponse;
 import ru.skillbox.social_network_authorization.entity.RefreshToken;
 import ru.skillbox.social_network_authorization.entity.User;
 import ru.skillbox.social_network_authorization.exception.InvalidPasswordException;
@@ -38,6 +39,7 @@ import javax.mail.internet.MimeMessage;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtServiceImpl jwtServiceImpl;
@@ -50,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
     @Value("${app.mail.password}")
     private String mailPassword;
 
-    public AuthenticateResponse authenticate(AuthenticateRq request) {
+    public TokenResponse authenticate(AuthenticateRq request) {
         User user = findUserByEmail(request.getEmail());
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -71,7 +73,7 @@ public class AuthServiceImpl implements AuthService {
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
 
-        return new AuthenticateResponse(jwt, refreshToken.getToken());
+        return new TokenResponse(jwt, refreshToken.getToken());
     }
 
     @Transactional
@@ -87,6 +89,7 @@ public class AuthServiceImpl implements AuthService {
         prop.put("mail.smtp.starttls.enable", "true");
 
         Session session = Session.getInstance(prop, new javax.mail.Authenticator() {
+            @Override
             protected PasswordAuthentication getPasswordAuthentication() {
                 return new PasswordAuthentication(mailUsername, mailPassword); // Замените на ваши учётные данные
             }
@@ -110,10 +113,10 @@ public class AuthServiceImpl implements AuthService {
             message.setContent(htmlContent, "text/html; charset=UTF-8");
             Transport.send(message);
 
-            System.out.println("Письмо успешно отправлено на адрес: " + request.getEmail());
+            log.info("Письмо успешно отправлено на адрес: " + request.getEmail());
 
         } catch (MessagingException | IOException e) {
-            System.err.println("Ошибка при отправке письма: " + e.getMessage());
+            log.error("Ошибка при отправке письма: " + e.getMessage());
             return "ERROR";
         }
 
@@ -127,7 +130,7 @@ public class AuthServiceImpl implements AuthService {
     public String updatePassword(String recoveryLink, SetPasswordRq request) {
 // Сравниваем токен из URL с кодом, указанным пользователем (temp)
         if (!recoveryLink.equals(request.getTemp())) {
-            System.err.println("Код восстановления не совпадает с ожидаемым");
+            log.error("Код восстановления не совпадает с ожидаемым");
             return "ERROR: Неверный код восстановления";
         }
 
@@ -142,7 +145,7 @@ public class AuthServiceImpl implements AuthService {
         user.setToken(null);
         userRepository.save(user);
 
-        System.out.println("Пароль успешно обновлен для пользователя: " + user.getEmail());
+        log.info("Пароль успешно обновлен для пользователя: " + user.getEmail());
         return "OK";
     }
 

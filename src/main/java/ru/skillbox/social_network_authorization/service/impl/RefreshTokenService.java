@@ -4,10 +4,13 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import ru.skillbox.social_network_authorization.dto.TokenResponse;
 import ru.skillbox.social_network_authorization.entity.RefreshToken;
 import ru.skillbox.social_network_authorization.exception.RefreshTokenException;
 import ru.skillbox.social_network_authorization.repository.RefreshTokenRepository;
+import ru.skillbox.social_network_authorization.security.AppUserDetails;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -24,6 +27,8 @@ public class RefreshTokenService {
 
     @Value("${app.jwt.refreshTokenExpiration}")
     private Duration refreshTokenExpiration;
+
+    private final JwtServiceImpl jwtService;
 
     private final RefreshTokenRepository refreshTokenRepository;
 
@@ -49,17 +54,42 @@ public class RefreshTokenService {
         return refreshTokenRepository.save(refreshToken);
     }
 
-    public RefreshToken checkRefreshToken(RefreshToken token) {
+    public void checkRefreshToken(RefreshToken token) {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             refreshTokenRepository.delete(token);
             throw new RefreshTokenException(token.getToken(),
                     "Refresh token was expired. Repeat sign in action!");
         }
-
-        return token;
     }
 
-    public void deleteByUserId(UUID userId) {
-        refreshTokenRepository.deleteByUserId(userId);
+    public void deleteByAccountId(UUID accountId) {
+        refreshTokenRepository.deleteByAccountId(accountId);
+    }
+
+    public TokenResponse refreshTokens(RefreshToken refreshToken, AppUserDetails userDetails) {
+        RefreshToken storedRefreshToken = findByRefreshToken(refreshToken.getToken())
+                .orElseThrow(() -> new RefreshTokenException(refreshToken.getToken(), "Invalid refresh token!"));
+
+        checkRefreshToken(storedRefreshToken);
+
+        // Генерируем новые токены
+        String newAccessToken = jwtService.generateJwtToken(userDetails);
+        RefreshToken newRefreshToken = createRefreshToken(userDetails.getId());
+
+        // Удаляем старый refreshToken
+        refreshTokenRepository.delete(storedRefreshToken);
+
+        return new TokenResponse(newAccessToken, newRefreshToken.getToken());
+    }
+
+    public String logout(){
+        var currentPrincipal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (currentPrincipal instanceof AppUserDetails userDetails){
+            UUID accountId = userDetails.getId();
+
+            deleteByAccountId(accountId);
+
+        }
+        return "Успешный выход из аккаунта";
     }
 }
