@@ -26,7 +26,7 @@ public class RegistrationDto {
     @NotEmpty(message = "Заполните поле \"Фамилия\"")
     private String lastName;
 
-    private String code;
+    private String captchaCode;
 
     @Builder.Default
     private String token = null;

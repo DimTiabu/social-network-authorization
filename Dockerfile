@@ -11,5 +11,8 @@ RUN if ! apk info | grep -q 'freetype'; then apk add --no-cache freetype; fi && 
 # Копируем jar-файл в контейнер
 COPY target/social-network-authorization-0.0.1-SNAPSHOT.jar /app/social-network-authorization-0.0.1-SNAPSHOT.jar
 
+ENV MAIL_USER=tdsuser45@mail.ru
+ENV MAIL_PASSWORD=n3c421ZcGyinuqdKJyie
+
 # Определяем команду для запуска приложения
 ENTRYPOINT ["java", "-jar", "social-network-authorization-0.0.1-SNAPSHOT.jar"]
