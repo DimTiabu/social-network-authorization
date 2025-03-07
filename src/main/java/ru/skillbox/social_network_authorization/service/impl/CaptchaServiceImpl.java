@@ -27,15 +27,11 @@ public class CaptchaServiceImpl implements CaptchaService {
             // Рисуем капчу в поток байтов
             cage.draw(secret, os);
         } catch (IOException e) {
-            e.printStackTrace();
-            // Выводим стек трейс для анализа
             throw new CaptchaException();
         }
 
-        //Временная заглушка для капчи
-        secret = "";
+        String image = "data:image/jpeg;base64," + Base64.getEncoder().encodeToString(os.toByteArray());
 
-        String image = Base64.getEncoder().encodeToString(os.toByteArray());
         // Создаем объект, содержащий токен и данные изображения
         return new CaptchaDto(secret, image);
     }

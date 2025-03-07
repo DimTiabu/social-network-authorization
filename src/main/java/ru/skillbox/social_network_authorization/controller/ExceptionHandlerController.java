@@ -54,6 +54,14 @@ public class ExceptionHandlerController {
                         ex.getMessage());
     }
 
+    @ExceptionHandler(CaptchaException.class)
+    public ErrorResponse invalidCaptcha(CaptchaException ex) {
+        log.error(ex.getMessage());
+        return new ErrorResponse(
+                        HttpStatus.BAD_REQUEST.value(),
+                        ex.getMessage());
+    }
+
     @ExceptionHandler(SecurityException.class)
     public ErrorResponse noAccess(
             SecurityException ex) {

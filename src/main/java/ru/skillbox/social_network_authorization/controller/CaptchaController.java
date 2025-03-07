@@ -1,5 +1,6 @@
 package ru.skillbox.social_network_authorization.controller;
 
+import jakarta.servlet.http.HttpSession;
 import ru.skillbox.social_network_authorization.dto.CaptchaDto;
 import ru.skillbox.social_network_authorization.service.CaptchaService;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,10 @@ public class CaptchaController {
     private final CaptchaService captchaServiceImpl;
 
     @GetMapping("/captcha")
-    public CaptchaDto generateCaptcha() {
-        return captchaServiceImpl.generateCaptcha();
+    public CaptchaDto generateCaptcha(HttpSession session) {
+        CaptchaDto captchaDto = captchaServiceImpl.generateCaptcha();
+        // Сохраняем сгенерированный токен в сессии
+        session.setAttribute("captchaSecret", captchaDto.getSecret());
+        return captchaDto;
     }
 }

@@ -41,15 +41,13 @@ public class JwtServiceImpl implements JwtService {
         try {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
         } catch (SignatureException e) {
-            log.error("Invalid signature: {}", e.getMessage());
+            throw new SignatureException("Недопустимая подпись: " + e.getMessage());
         } catch (MalformedJwtException e) {
-            log.error("Invalid token: {}", e.getMessage());
-        } catch (ExpiredJwtException e) {
-            log.error("Token is expired: {}", e.getMessage());
+            throw new MalformedJwtException("Недопустимый токен: " + e.getMessage());
         } catch (UnsupportedJwtException e) {
-            log.error("Token is unsupported: {}", e.getMessage());
-        } catch (IllegalArgumentException e) {
-            log.error("Claims string is empty: {}", e.getMessage());
+            throw  new UnsupportedJwtException("Токен не поддерживается: " + e.getMessage());
+        } catch (ExpiredJwtException e) {
+            throw new ru.skillbox.social_network_authorization.exception.ExpiredJwtException();
         }
         return true;
     }

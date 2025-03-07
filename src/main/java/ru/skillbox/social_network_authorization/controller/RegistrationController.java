@@ -1,7 +1,9 @@
 package ru.skillbox.social_network_authorization.controller;
 
+import jakarta.servlet.http.HttpSession;
 import ru.skillbox.social_network_authorization.dto.kafka.RegistrationEventDto;
 import ru.skillbox.social_network_authorization.entity.User;
+import ru.skillbox.social_network_authorization.exception.CaptchaException;
 import ru.skillbox.social_network_authorization.mapper.UserMapperFactory;
 import ru.skillbox.social_network_authorization.service.impl.KafkaMessageService;
 import ru.skillbox.social_network_authorization.service.RegistrationService;
@@ -19,10 +21,17 @@ public class RegistrationController {
 
     @PostMapping("/register")
     public String register(
-            @RequestBody @Valid RegistrationDto registrationDto) {
+            @RequestBody @Valid RegistrationDto registrationDto,
+            HttpSession session) {
+        String expectedCaptcha = (String) session.getAttribute("captchaSecret");
+        System.out.println(expectedCaptcha);
+        System.out.println(registrationDto.getCode());
+        if (!expectedCaptcha.equalsIgnoreCase(registrationDto.getCode())) {
+            throw new CaptchaException("Капча введена неверно");
+        }
+
         User user = registrationService.registerUser(
-                UserMapperFactory.registrationDtoToUser(registrationDto),
-                registrationDto.getCode());
+                UserMapperFactory.registrationDtoToUser(registrationDto));
 
         kafkaMessageService.sendMessageWithUserData(
                 RegistrationEventDto.builder()
