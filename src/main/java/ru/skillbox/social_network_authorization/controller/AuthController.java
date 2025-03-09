@@ -55,4 +55,31 @@ public class AuthController {
     public String logoutUser(){
         return refreshTokenService.logout();
     }
+
+    // Новый эндпоинт для изменения пароля (Authenticated user)
+    @PutMapping("/password")
+    public String changePassword(@RequestBody String request,
+                                 @AuthenticationPrincipal AppUserDetails userDetails) {
+        return authService.changePassword(request, userDetails);
+    }
+
+    // Новый эндпоинт для изменения email (Authenticated user)
+    @PutMapping("/email")
+    public String changeEmail(@RequestBody String request,
+                              @AuthenticationPrincipal AppUserDetails userDetails) {
+        return authService.changeEmail(request, userDetails);
+    }
+
+    // Новый эндпоинт для запроса ссылки на изменение email (Authenticated user)
+    @PostMapping("/change-email-link")
+    public String requestChangeEmailLink(@RequestBody String request,
+                                         @AuthenticationPrincipal AppUserDetails userDetails) {
+        return authService.requestChangeEmailLink(request, userDetails);
+    }
+
+    // Новый эндпоинт для запроса ссылки на изменение пароля
+    @PostMapping("/change-password-link")
+    public String requestChangePasswordLink(@RequestBody String request) {
+        return authService.requestChangePasswordLink(request);
+    }
 }

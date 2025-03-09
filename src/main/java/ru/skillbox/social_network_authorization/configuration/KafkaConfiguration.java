@@ -43,7 +43,7 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public ConsumerFactory<String, String> kafkaMessageConsumerFactory(ObjectMapper objectMapper){
+    public ConsumerFactory<String, String> kafkaMessageConsumerFactory(){
 
         Map<String, Object> config = new HashMap<>();
 
@@ -53,7 +53,7 @@ public class KafkaConfiguration {
         config.put(ConsumerConfig.GROUP_ID_CONFIG, kafkaMessageGroupId);
         config.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
 
-        return new DefaultKafkaConsumerFactory<>(config, new StringDeserializer(), new JsonDeserializer<>(objectMapper));
+        return new DefaultKafkaConsumerFactory<>(config);
     }
 
     @Bean

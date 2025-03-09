@@ -26,8 +26,7 @@ public class RegistrationController {
             @RequestBody @Valid RegistrationDto registrationDto,
             HttpSession session) {
         String expectedCaptcha = (String) session.getAttribute("captchaSecret");
-        log.info(expectedCaptcha);
-        log.info(registrationDto.getCaptchaCode());
+
         if (!expectedCaptcha.equalsIgnoreCase(registrationDto.getCaptchaCode())) {
             throw new CaptchaException("Капча введена неверно");
         }

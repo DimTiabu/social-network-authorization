@@ -149,6 +149,27 @@ public class AuthServiceImpl implements AuthService {
         return "OK";
     }
 
+    @Override
+    public String changePassword(String request, AppUserDetails userDetails) {
+        return "";
+    }
+
+    @Override
+    public String changeEmail(String request, AppUserDetails userDetails) {
+        return "";
+    }
+
+    @Override
+    public String requestChangeEmailLink(String request, AppUserDetails userDetails) {
+        return "";
+    }
+
+    @Override
+    public String requestChangePasswordLink(String request) {
+        return "";
+    }
+
+
     private User findUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() ->
