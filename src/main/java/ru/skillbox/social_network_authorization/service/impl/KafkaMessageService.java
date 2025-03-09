@@ -32,5 +32,6 @@ public class KafkaMessageService {
                 () -> new EntityNotFoundException("Пользователь не зарегистрирован"));
 
         user.setAccountId(createdAccountEventDto.getAccountId());
+        userRepository.save(user);
     }
 }
