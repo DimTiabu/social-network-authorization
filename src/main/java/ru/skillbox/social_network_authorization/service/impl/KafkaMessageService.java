@@ -2,6 +2,7 @@ package ru.skillbox.social_network_authorization.service.impl;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import ru.skillbox.social_network_authorization.entity.User;
 import ru.skillbox.social_network_authorization.repository.UserRepository;
 import ru.skillbox.social_network_authorization.dto.kafka.CreatedAccountEventDto;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class KafkaMessageService {
@@ -20,13 +22,8 @@ public class KafkaMessageService {
     private String producerTopicName;
 
     public void sendMessageWithUserData(RegistrationEventDto registrationEventDto) {
-        kafkaTemplate.send(producerTopicName,
-                RegistrationEventDto.builder()
-                        .userId(registrationEventDto.getUserId())
-                        .email(registrationEventDto.getEmail())
-                        .firstName(registrationEventDto.getFirstName())
-                        .lastName(registrationEventDto.getLastName())
-                        .build());
+        log.info("registrationEventDto: " + registrationEventDto);
+        kafkaTemplate.send(producerTopicName, registrationEventDto);
     }
 
     public void setAccountId(CreatedAccountEventDto createdAccountEventDto) {

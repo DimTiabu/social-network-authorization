@@ -21,7 +21,7 @@ public class JwtServiceImpl implements JwtService {
     private Duration tokenExpiration;
 
     public String generateJwtToken(AppUserDetails userDetails) {
-        return Jwts.builder()
+        String jwt = Jwts.builder()
                 .claim("sub", userDetails.getUsername())
                 .claim("accountId", userDetails.getId())
                 .claim("roles", userDetails.getAuthorities())
@@ -30,6 +30,9 @@ public class JwtServiceImpl implements JwtService {
                 .setHeaderParam("typ", "JWT")
                 .signWith(SignatureAlgorithm.HS256, jwtSecret)
                 .compact();
+
+        log.info("jwt: " + jwt);
+        return jwt;
     }
 
     public String getUsername(String token) {
@@ -48,7 +51,7 @@ public class JwtServiceImpl implements JwtService {
             throw new MalformedJwtException("Недопустимый токен: " + e.getMessage());
         } catch (UnsupportedJwtException e) {
             log.info("Токен не поддерживается: " + e.getMessage());
-            throw  new UnsupportedJwtException("Токен не поддерживается: " + e.getMessage());
+            throw new UnsupportedJwtException("Токен не поддерживается: " + e.getMessage());
         } catch (ExpiredJwtException e) {
             log.info("Токен просрочен");
             throw new ru.skillbox.social_network_authorization.exception.ExpiredJwtException();

@@ -1,5 +1,6 @@
 package ru.skillbox.social_network_authorization.listener;
 
+import ru.skillbox.social_network_authorization.dto.kafka.CreatedAccountEventDto;
 import ru.skillbox.social_network_authorization.mapper.CreationEventMapper;
 import ru.skillbox.social_network_authorization.service.impl.KafkaMessageService;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +19,14 @@ public class KafkaMessageListener {
 
     @KafkaListener(topics = "${app.kafka.topicListener}",
             groupId = "${app.kafka.kafkaMessageGroupId}",
-            containerFactory = "kafkaMessageConcurrentKafkaListenerContainerFactory")
+            containerFactory = "kafkaListenerContainerFactory")
     public void listen(@Payload String creation) {
 
-        kafkaMessageService.setAccountId(creationEventMapper.mapFromJson(creation));
+        log.info("creation: " + creation);
+        CreatedAccountEventDto createdAccountEventDto = creationEventMapper.mapFromJson(creation);
+
+        log.info("Создан аккаунт с userId " + createdAccountEventDto.getUserId() +
+                "и accountId " + createdAccountEventDto.getAccountId());
+        kafkaMessageService.setAccountId(createdAccountEventDto);
     }
 }

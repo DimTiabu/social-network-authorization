@@ -70,8 +70,10 @@ public class AuthServiceImpl implements AuthService {
         AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
 
         String jwt = jwtServiceImpl.generateJwtToken(userDetails);
+        log.info("Сгенерирован jwt: " + jwt);
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
+        log.info("Сгенерирован refreshToken: " + refreshToken);
 
         return new TokenResponse(jwt, refreshToken.getToken());
     }
