@@ -12,6 +12,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import ru.skillbox.social_network_authorization.dto.kafka.RegistrationEventDto;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +27,7 @@ public class KafkaConfiguration {
     private String kafkaMessageGroupId;
 
     @Bean
-    public ProducerFactory<String, Object> kafkaMessageProducerFactory(ObjectMapper objectMapper) {
+    public ProducerFactory<String, RegistrationEventDto> kafkaMessageProducerFactory(ObjectMapper objectMapper) {
         Map<String, Object> config = new HashMap<>();
 
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -37,7 +38,7 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public KafkaTemplate<String, Object> kafkaTemplate(ProducerFactory<String, Object> kafkaMessageProducerFactory){
+    public KafkaTemplate<String, RegistrationEventDto> kafkaTemplate(ProducerFactory<String, RegistrationEventDto> kafkaMessageProducerFactory){
         return new KafkaTemplate<>(kafkaMessageProducerFactory);
     }
 
