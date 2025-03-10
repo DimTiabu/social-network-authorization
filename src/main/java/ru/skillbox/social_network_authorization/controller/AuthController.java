@@ -1,5 +1,6 @@
 package ru.skillbox.social_network_authorization.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import ru.skillbox.social_network_authorization.dto.TokenResponse;
 import ru.skillbox.social_network_authorization.entity.RefreshToken;
@@ -16,6 +17,7 @@ import ru.skillbox.social_network_authorization.service.impl.RefreshTokenService
 
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -54,6 +56,7 @@ public class AuthController {
     public TokenResponse refreshToken(@RequestBody Map<String, String> payload ,
                                       @AuthenticationPrincipal AppUserDetails userDetails){
         String refreshToken = payload.get("refreshToken");
+        log.info("refreshToken: " + refreshToken);
         return refreshTokenService.refreshTokens(refreshTokenMapper.mapFromJson(refreshToken), userDetails);
     }
 
