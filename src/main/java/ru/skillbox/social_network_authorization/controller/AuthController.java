@@ -56,6 +56,7 @@ public class AuthController {
     public TokenResponse refreshToken(@RequestBody Map<String, String> payload ,
                                       @AuthenticationPrincipal AppUserDetails userDetails){
         String refreshToken = payload.get("refreshToken");
+        log.info(payload.toString());
         log.info("refreshToken: " + refreshToken);
         return refreshTokenService.refreshTokens(refreshTokenMapper.mapFromJson(refreshToken), userDetails);
     }
