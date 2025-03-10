@@ -2,14 +2,17 @@ package ru.skillbox.social_network_authorization.service.impl;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import ru.skillbox.social_network_authorization.dto.TokenResponse;
 import ru.skillbox.social_network_authorization.entity.RefreshToken;
+import ru.skillbox.social_network_authorization.entity.User;
 import ru.skillbox.social_network_authorization.exception.RefreshTokenException;
 import ru.skillbox.social_network_authorization.repository.RefreshTokenRepository;
+import ru.skillbox.social_network_authorization.repository.UserRepository;
 import ru.skillbox.social_network_authorization.security.AppUserDetails;
 
 import java.time.Duration;
@@ -22,6 +25,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RefreshTokenService {
 
+    private final UserRepository userRepository;
     @Value("${app.jwt.secret}")
     private String jwtSecret;
 
@@ -35,6 +39,17 @@ public class RefreshTokenService {
     public Optional<RefreshToken> findByRefreshToken(String token) {
         return refreshTokenRepository.findByToken(token);
     }
+
+    public AppUserDetails getUserByRefreshToken(String refreshToken) {
+        RefreshToken storedRefreshToken = findByRefreshToken(refreshToken)
+                .orElseThrow(() -> new RefreshTokenException(refreshToken, "Недействительный refresh token!"));
+
+        User user = userRepository.findByAccountId(storedRefreshToken.getAccountId())
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не зарегистрирован"));
+
+        return new AppUserDetails(user);
+    }
+
 
     public RefreshToken createRefreshToken(UUID accountId) {
         String token = Jwts.builder()

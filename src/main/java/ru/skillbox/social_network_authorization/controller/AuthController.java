@@ -49,13 +49,15 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public TokenResponse refreshToken(@RequestBody Map<String, String> payload ,
-                                      @AuthenticationPrincipal AppUserDetails userDetails){
+    public TokenResponse refreshToken(@RequestBody Map<String, String> payload) {
         String refreshToken = payload.get("refreshToken");
-        log.info(payload.toString());
         log.info("refreshToken: " + refreshToken);
+
+        AppUserDetails userDetails = refreshTokenService.getUserByRefreshToken(refreshToken);
+
         return refreshTokenService.refreshTokens(refreshToken, userDetails);
     }
+
 
     @PostMapping("/logout")
     public String logoutUser(){

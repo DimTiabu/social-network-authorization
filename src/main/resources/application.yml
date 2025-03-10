@@ -36,7 +36,7 @@ app:
   jwt:
     secret: "someSecretKey"
     tokenExpiration: 5m
-    refreshTokenExpiration: 30m
+    refreshTokenExpiration: 10m
   mail:
     user: ${MAIL_USER:tdsuser45@mail.ru}
     password: ${MAIL_PASSWORD:n3c421ZcGyinuqdKJyie}
