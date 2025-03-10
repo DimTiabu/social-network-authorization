@@ -22,13 +22,14 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @Slf4j
 @Component
-public class JwtTokenFilter extends OncePerRequestFilter {
+public class JwtTokenFilter {
+//public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final JwtServiceImpl jwtServiceImpl;
 
     private final UserDetailsServiceImpl userDetailsService;
 
-    @Override
+//    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
