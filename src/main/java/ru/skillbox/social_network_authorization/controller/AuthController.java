@@ -49,7 +49,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public TokenResponse refreshToken(@RequestParam String refreshToken,
+    public TokenResponse refreshToken(@RequestBody String refreshToken,
                                       @AuthenticationPrincipal AppUserDetails userDetails){
         return refreshTokenService.refreshTokens(refreshTokenMapper.mapFromJson(refreshToken), userDetails);
     }
