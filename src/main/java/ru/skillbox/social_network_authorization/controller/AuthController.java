@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.skillbox.social_network_authorization.service.JwtService;
 import ru.skillbox.social_network_authorization.service.impl.RefreshTokenService;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -49,9 +51,10 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public TokenResponse refreshToken(@RequestBody RefreshToken refreshToken,
+    public TokenResponse refreshToken(@RequestBody Map<String, String> payload ,
                                       @AuthenticationPrincipal AppUserDetails userDetails){
-        return refreshTokenService.refreshTokens(refreshToken, userDetails);
+        String refreshToken = payload.get("refreshToken");
+        return refreshTokenService.refreshTokens(refreshTokenMapper.mapFromJson(refreshToken), userDetails);
     }
 
     @PostMapping("/logout")
