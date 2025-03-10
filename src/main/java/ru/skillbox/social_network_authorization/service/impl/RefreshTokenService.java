@@ -66,9 +66,9 @@ public class RefreshTokenService {
         refreshTokenRepository.deleteByAccountId(accountId);
     }
 
-    public TokenResponse refreshTokens(RefreshToken refreshToken, AppUserDetails userDetails) {
-        RefreshToken storedRefreshToken = findByRefreshToken(refreshToken.getToken())
-                .orElseThrow(() -> new RefreshTokenException(refreshToken.getToken(), "Invalid refresh token!"));
+    public TokenResponse refreshTokens(String refreshToken, AppUserDetails userDetails) {
+        RefreshToken storedRefreshToken = findByRefreshToken(refreshToken)
+                .orElseThrow(() -> new RefreshTokenException(refreshToken, "Invalid refresh token!"));
 
         checkRefreshToken(storedRefreshToken);
 

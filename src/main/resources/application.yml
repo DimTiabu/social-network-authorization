@@ -30,6 +30,7 @@ spring:
 app:
   kafka:
     topicProducer: "registration-topic"
+
     topicListener: "created-account-topic"
     kafkaMessageGroupId: "kafka-account-group-id"
   jwt:

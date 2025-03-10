@@ -3,8 +3,6 @@ package ru.skillbox.social_network_authorization.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import ru.skillbox.social_network_authorization.dto.TokenResponse;
-import ru.skillbox.social_network_authorization.entity.RefreshToken;
-import ru.skillbox.social_network_authorization.mapper.RefreshTokenMapper;
 import ru.skillbox.social_network_authorization.security.AppUserDetails;
 import ru.skillbox.social_network_authorization.service.AuthService;
 import ru.skillbox.social_network_authorization.dto.AuthenticateRq;
@@ -28,8 +26,6 @@ public class AuthController {
     private final JwtService jwtService;
 
     private final RefreshTokenService refreshTokenService;
-
-    private final RefreshTokenMapper refreshTokenMapper;
 
     @PostMapping("/login")
     public TokenResponse login(@RequestBody AuthenticateRq request) {
@@ -58,7 +54,7 @@ public class AuthController {
         String refreshToken = payload.get("refreshToken");
         log.info(payload.toString());
         log.info("refreshToken: " + refreshToken);
-        return refreshTokenService.refreshTokens(refreshTokenMapper.mapFromJson(refreshToken), userDetails);
+        return refreshTokenService.refreshTokens(refreshToken, userDetails);
     }
 
     @PostMapping("/logout")
