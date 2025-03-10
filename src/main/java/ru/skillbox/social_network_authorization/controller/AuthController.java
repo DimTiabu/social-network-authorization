@@ -49,9 +49,9 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public TokenResponse refreshToken(@RequestBody String refreshToken,
+    public TokenResponse refreshToken(@RequestBody RefreshToken refreshToken,
                                       @AuthenticationPrincipal AppUserDetails userDetails){
-        return refreshTokenService.refreshTokens(refreshTokenMapper.mapFromJson(refreshToken), userDetails);
+        return refreshTokenService.refreshTokens(refreshToken, userDetails);
     }
 
     @PostMapping("/logout")
