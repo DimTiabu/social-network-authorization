@@ -41,21 +41,22 @@ public class JwtServiceImpl implements JwtService {
     }
 
     public boolean validate(String authToken) {
+        boolean result = true;
         try {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
         } catch (SignatureException e) {
-            log.info("Недопустимая подпись: " + e.getMessage());
-            throw new SignatureException("Недопустимая подпись: " + e.getMessage());
+            log.error("Недопустимая подпись: " + e.getMessage());
+            result = false;
         } catch (MalformedJwtException e) {
-            log.info("Недопустимый токен: " + e.getMessage());
-            throw new MalformedJwtException("Недопустимый токен: " + e.getMessage());
+            log.error("Недопустимый токен: " + e.getMessage());
+            result = false;
         } catch (UnsupportedJwtException e) {
-            log.info("Токен не поддерживается: " + e.getMessage());
-            throw new UnsupportedJwtException("Токен не поддерживается: " + e.getMessage());
+            log.error("Токен не поддерживается: " + e.getMessage());
+            result = false;
         } catch (ExpiredJwtException e) {
-            log.info("Токен просрочен");
-            throw new ru.skillbox.social_network_authorization.exception.ExpiredJwtException();
+            log.error("Токен просрочен");
+            result = false;
         }
-        return true;
+        return result;
     }
 }
