@@ -3,6 +3,7 @@ package ru.skillbox.social_network_authorization.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import ru.skillbox.social_network_authorization.dto.TokenResponse;
+import ru.skillbox.social_network_authorization.mapper.RequestMapper;
 import ru.skillbox.social_network_authorization.security.AppUserDetails;
 import ru.skillbox.social_network_authorization.service.AuthService;
 import ru.skillbox.social_network_authorization.dto.AuthenticateRq;
@@ -26,6 +27,8 @@ public class AuthController {
     private final JwtService jwtService;
 
     private final RefreshTokenService refreshTokenService;
+
+    private final RequestMapper requestMapper;
 
     @PostMapping("/login")
     public TokenResponse login(@RequestBody AuthenticateRq request) {
@@ -68,7 +71,8 @@ public class AuthController {
     @PutMapping("/password")
     public String changePassword(@RequestBody String request,
                                  @AuthenticationPrincipal AppUserDetails userDetails) {
-        return authService.changePassword(request, userDetails);
+        return authService.changePassword(
+                requestMapper.mapChangePasswordRqFromString(request), userDetails);
     }
 
     // Новый эндпоинт для изменения email (Authenticated user)

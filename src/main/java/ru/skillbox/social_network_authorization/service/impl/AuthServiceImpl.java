@@ -156,16 +156,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String changePassword(String request, AppUserDetails userDetails) {
-        ChangePasswordRq changePasswordRq;
-        try {
-            changePasswordRq = new ObjectMapper().readValue(request, ChangePasswordRq.class);
-        } catch (JsonProcessingException e) {
-            log.error("Ошибка обработки JSON при изменении пароля");
-            return "ERROR: Некорректный формат данных";
-        }
-
+    public String changePassword(ChangePasswordRq changePasswordRq, AppUserDetails userDetails) {
         User user = findUserByEmail(userDetails.getUsername());
+        log.info("OldPassword: " + changePasswordRq.getOldPassword());
+        log.info("NewPassword: " + changePasswordRq.getNewPassword());
 
         if (!passwordEncoder.matches(changePasswordRq.getOldPassword(), user.getPassword())) {
             log.error("Неверный старый пароль для пользователя: " + user.getEmail());

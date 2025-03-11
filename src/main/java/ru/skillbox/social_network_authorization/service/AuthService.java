@@ -1,10 +1,7 @@
 package ru.skillbox.social_network_authorization.service;
 
-import ru.skillbox.social_network_authorization.dto.AuthenticateRq;
-import ru.skillbox.social_network_authorization.dto.RecoveryPasswordLinkRq;
-import ru.skillbox.social_network_authorization.dto.SetPasswordRq;
+import ru.skillbox.social_network_authorization.dto.*;
 import org.springframework.stereotype.Service;
-import ru.skillbox.social_network_authorization.dto.TokenResponse;
 import ru.skillbox.social_network_authorization.security.AppUserDetails;
 
 @Service
@@ -15,7 +12,7 @@ public interface AuthService {
 
     String updatePassword(String recoveryLink, SetPasswordRq request);
 
-    String changePassword(String request, AppUserDetails userDetails);
+    String changePassword(ChangePasswordRq changePasswordRq, AppUserDetails userDetails);
 
     String changeEmail(String email, AppUserDetails userDetails);
 

@@ -4,6 +4,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenService {
@@ -90,6 +92,7 @@ public class RefreshTokenService {
     }
 
     public TokenResponse refreshTokens(String refreshToken, AppUserDetails userDetails) {
+        log.info("Запуск метода refreshTokens; refreshToken = " + refreshToken);
         RefreshToken storedRefreshToken = findByRefreshToken(refreshToken);
 
         checkRefreshToken(storedRefreshToken);
