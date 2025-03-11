@@ -90,11 +90,13 @@ public class AuthServiceImpl implements AuthService {
         // Логика отправки письма с использованием SMTP
         Properties prop = new Properties();
         prop.put("mail.smtp.auth", "true");
-        prop.put("mail.smtp.host", "smtp.mail.ru"); // Замените на ваш SMTP-сервер
-        prop.put("mail.smtp.port", "465"); // Замените на порт вашего SMTP-сервера
-        prop.put("mail.smtp.starttls.enable", "true");
-        prop.put("mail.smtp.ssl.enable", "false");
-
+        prop.put("mail.smtp.host", "smtp.mail.ru");
+        prop.put("mail.smtp.port", "465");
+        prop.put("mail.smtp.ssl.enable", "true");   // Должно быть true для 465
+        prop.put("mail.smtp.starttls.enable", "false"); // Должно быть false для 465
+        prop.put("mail.smtp.timeout", "5000");
+        prop.put("mail.smtp.connectiontimeout", "5000"); // Таймаут на подключение
+        prop.put("mail.debug", "true");
         Session session = Session.getInstance(prop, new javax.mail.Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
