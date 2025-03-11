@@ -32,7 +32,7 @@ public class AuthController {
         return authService.authenticate(request);
     }
 
-    @PostMapping("/password/recovery")
+    @PostMapping("/password/recovery/")
     public String recoverPassword(@RequestBody RecoveryPasswordLinkRq request) {
         return authService.sendRecoveryEmail(request);
     }
@@ -73,9 +73,9 @@ public class AuthController {
 
     // Новый эндпоинт для изменения email (Authenticated user)
     @PutMapping("/email")
-    public String changeEmail(@RequestBody String request,
+    public String changeEmail(@RequestBody String email,
                               @AuthenticationPrincipal AppUserDetails userDetails) {
-        return authService.changeEmail(request, userDetails);
+        return authService.changeEmail(email, userDetails);
     }
 
     // Новый эндпоинт для запроса ссылки на изменение email (Authenticated user)

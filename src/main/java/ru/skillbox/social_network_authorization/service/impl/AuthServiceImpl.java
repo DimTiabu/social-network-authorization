@@ -157,8 +157,11 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String changeEmail(String request, AppUserDetails userDetails) {
-        return "";
+    public String changeEmail(String email, AppUserDetails userDetails) {
+        User user = findUserByEmail(userDetails.getUsername());
+        user.setEmail(email);
+        userRepository.save(user);
+        return "Электронная почта успешно изменена";
     }
 
     @Override
