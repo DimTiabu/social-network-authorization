@@ -23,10 +23,14 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -97,17 +101,18 @@ public class AuthServiceImpl implements AuthService {
             }
         });
 
-        try {
-            ClassPathResource resource = new ClassPathResource("templates/recovery_email.html");
-            String htmlContent = new String(
-                    Files.readAllBytes(resource.getFile().toPath()),
-                    StandardCharsets.UTF_8);
+        ClassPathResource resource = new ClassPathResource("templates/recovery_email.html");
 
-            // Подстановка кода для восстановления пароля вместо %temp_password%
+        try (InputStream inputStream = resource.getInputStream();
+             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+
+            String htmlContent = reader.lines().collect(Collectors.joining("\n"));
+
+            // Подстановка значения в HTML
             htmlContent = htmlContent.replace("%temp%", request.getTemp());
 
             Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(mailUsername)); // Замените на ваш адрес электронной почты
+            message.setFrom(new InternetAddress(mailUsername)); // Ваш e-mail
             message.setRecipient(Message.RecipientType.TO, new InternetAddress(request.getEmail()));
             message.setSubject("Восстановление пароля");
 
