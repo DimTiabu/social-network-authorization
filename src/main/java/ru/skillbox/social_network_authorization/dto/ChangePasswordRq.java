@@ -7,5 +7,6 @@ import lombok.Setter;
 @Setter
 public class ChangePasswordRq {
     private String oldPassword;
-    private String newPassword;
+    private String newPassword1;
+    private String newPassword2;
 }

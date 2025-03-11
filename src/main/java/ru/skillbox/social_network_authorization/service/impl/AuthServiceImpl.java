@@ -15,6 +15,7 @@ import ru.skillbox.social_network_authorization.dto.*;
 import ru.skillbox.social_network_authorization.entity.RefreshToken;
 import ru.skillbox.social_network_authorization.entity.User;
 import ru.skillbox.social_network_authorization.exception.InvalidPasswordException;
+import ru.skillbox.social_network_authorization.exception.PasswordsDoNotMatchException;
 import ru.skillbox.social_network_authorization.repository.UserRepository;
 import ru.skillbox.social_network_authorization.security.AppUserDetails;
 import ru.skillbox.social_network_authorization.service.AuthService;
@@ -159,14 +160,18 @@ public class AuthServiceImpl implements AuthService {
     public String changePassword(ChangePasswordRq changePasswordRq, AppUserDetails userDetails) {
         User user = findUserByEmail(userDetails.getUsername());
         log.info("OldPassword: " + changePasswordRq.getOldPassword());
-        log.info("NewPassword: " + changePasswordRq.getNewPassword());
+        log.info("NewPassword: " + changePasswordRq.getNewPassword1());
+
+        if (!passwordEncoder.matches(changePasswordRq.getNewPassword1(), changePasswordRq.getNewPassword2())) {
+            throw new PasswordsDoNotMatchException();
+        }
 
         if (!passwordEncoder.matches(changePasswordRq.getOldPassword(), user.getPassword())) {
             log.error("Неверный старый пароль для пользователя: " + user.getEmail());
             return "ERROR: Неверный старый пароль";
         }
 
-        user.setPassword(passwordEncoder.encode(changePasswordRq.getNewPassword()));
+        user.setPassword(passwordEncoder.encode(changePasswordRq.getNewPassword1()));
         userRepository.save(user);
 
         log.info("Пароль успешно изменен для пользователя: " + user.getEmail());

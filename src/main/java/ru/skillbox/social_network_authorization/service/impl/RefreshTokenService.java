@@ -108,6 +108,7 @@ public class RefreshTokenService {
     }
 
     public String logout() {
+        log.info("Запуск метода logout");
         var currentPrincipal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (currentPrincipal instanceof AppUserDetails userDetails) {
             UUID accountId = userDetails.getId();
