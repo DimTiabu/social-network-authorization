@@ -18,7 +18,6 @@ import ru.skillbox.social_network_authorization.security.AppUserDetails;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,18 +35,23 @@ public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
-    public Optional<RefreshToken> findByRefreshToken(String token) {
-        return refreshTokenRepository.findByToken(token);
+    public RefreshToken findByRefreshToken(String refreshToken) {
+        return refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new RefreshTokenException(refreshToken, "Недействительный refresh-токен!"));
     }
 
     public AppUserDetails getUserByRefreshToken(String refreshToken) {
-        RefreshToken storedRefreshToken = findByRefreshToken(refreshToken)
-                .orElseThrow(() -> new RefreshTokenException(refreshToken, "Недействительный refresh token!"));
+        try {
+            RefreshToken storedRefreshToken = findByRefreshToken(refreshToken);
 
-        User user = userRepository.findByAccountId(storedRefreshToken.getAccountId())
-                .orElseThrow(() -> new EntityNotFoundException("Пользователь не зарегистрирован"));
+            User user = userRepository.findByAccountId(storedRefreshToken.getAccountId())
+                    .orElseThrow(() -> new EntityNotFoundException("Пользователь не зарегистрирован"));
 
-        return new AppUserDetails(user);
+            return new AppUserDetails(user);
+        } catch (RefreshTokenException e) {
+            logout();
+            throw e;
+        }
     }
 
 
@@ -70,10 +74,14 @@ public class RefreshTokenService {
     }
 
     public void checkRefreshToken(RefreshToken token) {
-        if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
-            refreshTokenRepository.delete(token);
-            throw new RefreshTokenException(token.getToken(),
-                    "Refresh token was expired. Repeat sign in action!");
+        try {
+            if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
+                refreshTokenRepository.delete(token);
+                throw new RefreshTokenException(token.getToken(),
+                        "Срок действия refresh-токена истек. Авторизуйтесь повторно!");
+            }
+        } catch (RefreshTokenException e) {
+            logout();
         }
     }
 
@@ -82,8 +90,7 @@ public class RefreshTokenService {
     }
 
     public TokenResponse refreshTokens(String refreshToken, AppUserDetails userDetails) {
-        RefreshToken storedRefreshToken = findByRefreshToken(refreshToken)
-                .orElseThrow(() -> new RefreshTokenException(refreshToken, "Invalid refresh token!"));
+        RefreshToken storedRefreshToken = findByRefreshToken(refreshToken);
 
         checkRefreshToken(storedRefreshToken);
 
@@ -97,9 +104,9 @@ public class RefreshTokenService {
         return new TokenResponse(newAccessToken, newRefreshToken.getToken());
     }
 
-    public String logout(){
+    public String logout() {
         var currentPrincipal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (currentPrincipal instanceof AppUserDetails userDetails){
+        if (currentPrincipal instanceof AppUserDetails userDetails) {
             UUID accountId = userDetails.getId();
 
             deleteByAccountId(accountId);

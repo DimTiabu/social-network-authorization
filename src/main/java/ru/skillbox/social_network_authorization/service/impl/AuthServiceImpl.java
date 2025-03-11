@@ -1,5 +1,7 @@
 package ru.skillbox.social_network_authorization.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -9,16 +11,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import ru.skillbox.social_network_authorization.dto.TokenResponse;
+import ru.skillbox.social_network_authorization.dto.*;
 import ru.skillbox.social_network_authorization.entity.RefreshToken;
 import ru.skillbox.social_network_authorization.entity.User;
 import ru.skillbox.social_network_authorization.exception.InvalidPasswordException;
 import ru.skillbox.social_network_authorization.repository.UserRepository;
 import ru.skillbox.social_network_authorization.security.AppUserDetails;
 import ru.skillbox.social_network_authorization.service.AuthService;
-import ru.skillbox.social_network_authorization.dto.AuthenticateRq;
-import ru.skillbox.social_network_authorization.dto.RecoveryPasswordLinkRq;
-import ru.skillbox.social_network_authorization.dto.SetPasswordRq;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -158,7 +157,26 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String changePassword(String request, AppUserDetails userDetails) {
-        return "";
+        ChangePasswordRq changePasswordRq;
+        try {
+            changePasswordRq = new ObjectMapper().readValue(request, ChangePasswordRq.class);
+        } catch (JsonProcessingException e) {
+            log.error("Ошибка обработки JSON при изменении пароля");
+            return "ERROR: Некорректный формат данных";
+        }
+
+        User user = findUserByEmail(userDetails.getUsername());
+
+        if (!passwordEncoder.matches(changePasswordRq.getOldPassword(), user.getPassword())) {
+            log.error("Неверный старый пароль для пользователя: " + user.getEmail());
+            return "ERROR: Неверный старый пароль";
+        }
+
+        user.setPassword(passwordEncoder.encode(changePasswordRq.getNewPassword()));
+        userRepository.save(user);
+
+        log.info("Пароль успешно изменен для пользователя: " + user.getEmail());
+        return "Пароль успешно изменен";
     }
 
     @Override
