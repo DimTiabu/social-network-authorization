@@ -1,7 +1,5 @@
 package ru.skillbox.social_network_authorization.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -28,7 +26,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -180,16 +177,16 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String changeEmail(String email, AppUserDetails userDetails) {
-        User user = findUserByEmail(userDetails.getUsername());
+    public String changeEmail(String email, String currentEmail) {
+        User user = findUserByEmail(currentEmail);
         user.setEmail(email);
         userRepository.save(user);
         return "Электронная почта успешно изменена";
     }
 
     @Override
-    public String requestChangeEmailLink(String email, AppUserDetails userDetails) {
-        return changeEmail(email, userDetails);
+    public String requestChangeEmailLink(String email, String currentEmail) {
+        return changeEmail(email, currentEmail);
     }
 
     @Override

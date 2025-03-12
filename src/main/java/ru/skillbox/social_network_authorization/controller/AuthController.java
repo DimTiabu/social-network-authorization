@@ -1,7 +1,9 @@
 package ru.skillbox.social_network_authorization.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import ru.skillbox.social_network_authorization.dto.*;
 import ru.skillbox.social_network_authorization.mapper.RequestMapper;
 import ru.skillbox.social_network_authorization.security.AppUserDetails;
@@ -74,18 +76,20 @@ public class AuthController {
 
     // Новый эндпоинт для изменения email (Authenticated user)
     @PutMapping("/email")
-    public String changeEmail(@RequestBody String email,
-                              @AuthenticationPrincipal AppUserDetails userDetails) {
-        return authService.changeEmail(email, userDetails);
+    public String changeEmail(@RequestBody String email) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = authentication.getName();
+        return authService.changeEmail(email, currentEmail);
     }
 
     // Новый эндпоинт для запроса ссылки на изменение email (Authenticated user)
     @PostMapping("/change-email-link")
-    public String requestChangeEmailLink(@RequestBody ChangeEmailRequest request) {
-        log.info("refreshToken: " + request.getRefreshToken());
+    public String requestChangeEmailLink(@RequestBody String email) {
+        log.info("email: " + email);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = authentication.getName();
 
-        AppUserDetails userDetails = refreshTokenService.getUserByRefreshToken(request.getRefreshToken());
-        return authService.requestChangeEmailLink(request.getEmail(), userDetails);
+        return authService.requestChangeEmailLink(email, currentEmail);
     }
 
 
