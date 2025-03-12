@@ -18,5 +18,5 @@ public interface AuthService {
 
     String requestChangeEmailLink(String request, AppUserDetails userDetails);
 
-    String requestChangePasswordLink(String request);
+    String requestChangePasswordLink(ChangePasswordRq changePasswordRq, AppUserDetails userDetails);
 }

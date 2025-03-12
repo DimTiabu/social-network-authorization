@@ -187,13 +187,13 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String requestChangeEmailLink(String request, AppUserDetails userDetails) {
-        return "";
+    public String requestChangeEmailLink(String email, AppUserDetails userDetails) {
+        return changeEmail(email, userDetails);
     }
 
     @Override
-    public String requestChangePasswordLink(String request) {
-        return "";
+    public String requestChangePasswordLink(ChangePasswordRq changePasswordRq, AppUserDetails userDetails) {
+        return changePassword(changePasswordRq, userDetails);
     }
 
 

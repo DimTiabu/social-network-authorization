@@ -84,14 +84,15 @@ public class AuthController {
 
     // Новый эндпоинт для запроса ссылки на изменение email (Authenticated user)
     @PostMapping("/change-email-link")
-    public String requestChangeEmailLink(@RequestBody String request,
+    public String requestChangeEmailLink(@RequestBody String email,
                                          @AuthenticationPrincipal AppUserDetails userDetails) {
-        return authService.requestChangeEmailLink(request, userDetails);
+        return authService.requestChangeEmailLink(email, userDetails);
     }
 
     // Новый эндпоинт для запроса ссылки на изменение пароля
     @PostMapping("/change-password-link")
-    public String requestChangePasswordLink(@RequestBody String request) {
-        return authService.requestChangePasswordLink(request);
+    public String requestChangePasswordLink(@RequestBody String request,
+                                            @AuthenticationPrincipal AppUserDetails userDetails) {
+        return authService.requestChangePasswordLink(requestMapper.mapChangePasswordRqFromString(request), userDetails);
     }
 }
