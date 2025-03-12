@@ -93,6 +93,7 @@ public class AuthServiceImpl implements AuthService {
         prop.put("mail.smtp.host", "smtp.mail.ru"); // Замените на ваш SMTP-сервер
         prop.put("mail.smtp.port", "587"); // Замените на порт вашего SMTP-сервера
         prop.put("mail.smtp.starttls.enable", "true");
+        prop.put("mail.smtp.connectiontimeout", "5000"); // Таймаут на подключение
 
         Session session = Session.getInstance(prop, new javax.mail.Authenticator() {
             @Override

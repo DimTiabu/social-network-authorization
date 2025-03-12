@@ -85,14 +85,23 @@ public class AuthController {
     // Новый эндпоинт для запроса ссылки на изменение email (Authenticated user)
     @PostMapping("/change-email-link")
     public String requestChangeEmailLink(@RequestBody String email,
-                                         @AuthenticationPrincipal AppUserDetails userDetails) {
+                                         @RequestBody Map<String, String> payload) {
+        String refreshToken = payload.get("refreshToken");
+        log.info("refreshToken: " + refreshToken);
+
+        AppUserDetails userDetails = refreshTokenService.getUserByRefreshToken(refreshToken);
         return authService.requestChangeEmailLink(email, userDetails);
     }
 
     // Новый эндпоинт для запроса ссылки на изменение пароля
     @PostMapping("/change-password-link")
     public String requestChangePasswordLink(@RequestBody String request,
-                                            @AuthenticationPrincipal AppUserDetails userDetails) {
-        return authService.requestChangePasswordLink(requestMapper.mapChangePasswordRqFromString(request), userDetails);
+                                            @RequestBody Map<String, String> payload) {
+        String refreshToken = payload.get("refreshToken");
+        log.info("refreshToken: " + refreshToken);
+
+        AppUserDetails userDetails = refreshTokenService.getUserByRefreshToken(refreshToken);
+        return authService.requestChangePasswordLink(
+                requestMapper.mapChangePasswordRqFromString(request), userDetails);
     }
 }
