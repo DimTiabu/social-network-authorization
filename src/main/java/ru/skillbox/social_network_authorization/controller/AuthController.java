@@ -2,13 +2,10 @@ package ru.skillbox.social_network_authorization.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import ru.skillbox.social_network_authorization.dto.TokenResponse;
+import ru.skillbox.social_network_authorization.dto.*;
 import ru.skillbox.social_network_authorization.mapper.RequestMapper;
 import ru.skillbox.social_network_authorization.security.AppUserDetails;
 import ru.skillbox.social_network_authorization.service.AuthService;
-import ru.skillbox.social_network_authorization.dto.AuthenticateRq;
-import ru.skillbox.social_network_authorization.dto.RecoveryPasswordLinkRq;
-import ru.skillbox.social_network_authorization.dto.SetPasswordRq;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.skillbox.social_network_authorization.service.JwtService;
@@ -84,14 +81,13 @@ public class AuthController {
 
     // Новый эндпоинт для запроса ссылки на изменение email (Authenticated user)
     @PostMapping("/change-email-link")
-    public String requestChangeEmailLink(@RequestBody String email,
-                                         @RequestBody Map<String, String> payload) {
-        String refreshToken = payload.get("refreshToken");
-        log.info("refreshToken: " + refreshToken);
+    public String requestChangeEmailLink(@RequestBody ChangeEmailRequest request) {
+        log.info("refreshToken: " + request.getRefreshToken());
 
-        AppUserDetails userDetails = refreshTokenService.getUserByRefreshToken(refreshToken);
-        return authService.requestChangeEmailLink(email, userDetails);
+        AppUserDetails userDetails = refreshTokenService.getUserByRefreshToken(request.getRefreshToken());
+        return authService.requestChangeEmailLink(request.getEmail(), userDetails);
     }
+
 
     // Новый эндпоинт для запроса ссылки на изменение пароля
     @PostMapping("/change-password-link")
