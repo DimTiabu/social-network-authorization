@@ -77,9 +77,7 @@ public class AuthController {
     // Новый эндпоинт для изменения email (Authenticated user)
     @PutMapping("/email")
     public String changeEmail(@RequestBody String email) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = authentication.getName();
-        return authService.changeEmail(email, currentEmail);
+        return authService.changeEmail(email);
     }
 
     // Новый эндпоинт для запроса ссылки на изменение email (Authenticated user)
@@ -88,7 +86,7 @@ public class AuthController {
         log.info("email: " + email);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = authentication.getName();
-
+        log.info(currentEmail);
         return authService.requestChangeEmailLink(email, currentEmail);
     }
 

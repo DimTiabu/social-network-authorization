@@ -177,17 +177,16 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String changeEmail(String email, String currentEmail) {
-        User user = findUserByEmail(currentEmail);
-        user.setEmail(email);
-        userRepository.save(user);
-        return "Электронная почта успешно изменена";
+    public String changeEmail(String email) {
+        return "";
     }
 
     @Override
     public String requestChangeEmailLink(String email, String currentEmail) {
-        return changeEmail(email, currentEmail);
-    }
+        User user = findUserByEmail(currentEmail);
+        user.setEmail(email);
+        userRepository.save(user);
+        return "Электронная почта успешно изменена";    }
 
     @Override
     public String requestChangePasswordLink(ChangePasswordRq changePasswordRq, AppUserDetails userDetails) {
