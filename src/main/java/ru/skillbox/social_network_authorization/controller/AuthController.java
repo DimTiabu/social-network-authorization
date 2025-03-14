@@ -68,10 +68,9 @@ public class AuthController {
 
     // Новый эндпоинт для изменения пароля (Authenticated user)
     @PutMapping("/password")
-    public String changePassword(@RequestBody String request,
-                                 @AuthenticationPrincipal AppUserDetails userDetails) {
+    public String changePassword(@RequestBody String request, String email) {
         return authService.changePassword(
-                requestMapper.mapChangePasswordRqFromString(request), userDetails);
+                requestMapper.mapChangePasswordRqFromString(request), email);
     }
 
     // Новый эндпоинт для изменения email (Authenticated user)
@@ -94,13 +93,19 @@ public class AuthController {
 
     // Новый эндпоинт для запроса ссылки на изменение пароля
     @PostMapping("/change-password-link")
-    public String requestChangePasswordLink(@RequestBody String request,
-                                            @RequestBody Map<String, String> payload) {
-        String refreshToken = payload.get("refreshToken");
-        log.info("refreshToken: " + refreshToken);
+    public String requestChangePasswordLink(@RequestBody Map<String, String> payload) {
+        String newPassword1 = payload.get("newPassword1");
+        log.info("newPassword1: " + newPassword1);
+        String newPassword2 = payload.get("newPassword2");
+        log.info("newPassword2: " + newPassword2);
+        String oldPassword = payload.get("oldPassword");
+        log.info("oldPassword: " + oldPassword);
 
-        AppUserDetails userDetails = refreshTokenService.getUserByRefreshToken(refreshToken);
-        return authService.requestChangePasswordLink(
-                requestMapper.mapChangePasswordRqFromString(request), userDetails);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentEmail = authentication.getName();
+        log.info(currentEmail);
+
+        ChangePasswordRq changePasswordRq = new ChangePasswordRq(newPassword1, newPassword2, oldPassword);
+        return authService.requestChangePasswordLink(changePasswordRq, currentEmail);
     }
 }

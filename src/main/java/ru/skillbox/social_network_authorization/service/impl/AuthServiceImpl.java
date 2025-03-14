@@ -155,8 +155,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String changePassword(ChangePasswordRq changePasswordRq, AppUserDetails userDetails) {
-        User user = findUserByEmail(userDetails.getUsername());
+    public String changePassword(ChangePasswordRq changePasswordRq, String email) {
+        User user = findUserByEmail(email);
         log.info("OldPassword: " + changePasswordRq.getOldPassword());
         log.info("NewPassword: " + changePasswordRq.getNewPassword1());
 
@@ -189,8 +189,8 @@ public class AuthServiceImpl implements AuthService {
         return "Электронная почта успешно изменена";    }
 
     @Override
-    public String requestChangePasswordLink(ChangePasswordRq changePasswordRq, AppUserDetails userDetails) {
-        return changePassword(changePasswordRq, userDetails);
+    public String requestChangePasswordLink(ChangePasswordRq changePasswordRq, String email) {
+        return changePassword(changePasswordRq, email);
     }
 
 

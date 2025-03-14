@@ -44,6 +44,7 @@ public class SecurityConfiguration {
         http.authorizeHttpRequests(auth ->
                         auth.requestMatchers("/api/v1/auth/**").permitAll()
                                 .requestMatchers("/api/v1/auth/change-email-link").authenticated()
+                                .requestMatchers("/api/v1/auth/change-password-link").authenticated()
                                 .anyRequest().authenticated()
                 )
                 .exceptionHandling(
