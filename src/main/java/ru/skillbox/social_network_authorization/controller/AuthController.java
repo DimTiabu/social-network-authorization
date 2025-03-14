@@ -82,7 +82,8 @@ public class AuthController {
 
     // Новый эндпоинт для запроса ссылки на изменение email (Authenticated user)
     @PostMapping("/change-email-link")
-    public String requestChangeEmailLink(@RequestBody String email) {
+    public String requestChangeEmailLink(@RequestBody Map<String, Map<String, String>> payload) {
+        String email = payload.get("email").get("email");
         log.info("email: " + email);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = authentication.getName();
