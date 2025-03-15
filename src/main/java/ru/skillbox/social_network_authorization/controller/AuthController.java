@@ -1,10 +1,14 @@
 package ru.skillbox.social_network_authorization.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 import ru.skillbox.social_network_authorization.dto.*;
+import ru.skillbox.social_network_authorization.exception.JwtAuthenticationException;
 import ru.skillbox.social_network_authorization.mapper.RequestMapper;
 import ru.skillbox.social_network_authorization.security.AppUserDetails;
 import ru.skillbox.social_network_authorization.service.AuthService;
@@ -81,9 +85,22 @@ public class AuthController {
 
     // Новый эндпоинт для запроса ссылки на изменение email (Authenticated user)
     @PostMapping("/change-email-link")
-    public String requestChangeEmailLink(@RequestBody Map<String, Map<String, String>> payload) {
+    public String requestChangeEmailLink(@RequestBody Map<String, Map<String, String>> payload,
+                                         HttpServletRequest request) {
         String email = payload.get("email").get("email");
         log.info("email: " + email);
+
+        String token;
+        String headerAuth = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
+            log.info("HeaderAuth: " + headerAuth);
+            token = headerAuth.substring(7);
+        } else {
+            throw new JwtAuthenticationException("JWT token is missing or invalid");
+        }
+
+        log.info("token: " + token);
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentEmail = authentication.getName();
         log.info(currentEmail);
