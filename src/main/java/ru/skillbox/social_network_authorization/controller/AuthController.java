@@ -50,7 +50,7 @@ public class AuthController {
     }
 
     @GetMapping("/validate")
-    public Boolean validateToken(@RequestParam String token){
+    public Boolean validateToken(@RequestParam String token) {
         return jwtService.validate(token);
     }
 
@@ -66,7 +66,7 @@ public class AuthController {
 
 
     @PostMapping("/logout")
-    public String logoutUser(){
+    public String logoutUser() {
         return refreshTokenService.logout();
     }
 
@@ -101,8 +101,7 @@ public class AuthController {
 
         log.info("token: " + token);
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = authentication.getName();
+        String currentEmail = jwtService.getUsername(token);
         log.info(currentEmail);
         return authService.requestChangeEmailLink(email, currentEmail);
     }
