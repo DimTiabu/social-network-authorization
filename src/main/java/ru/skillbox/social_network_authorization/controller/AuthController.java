@@ -3,9 +3,6 @@ package ru.skillbox.social_network_authorization.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import ru.skillbox.social_network_authorization.dto.*;
 import ru.skillbox.social_network_authorization.exception.JwtAuthenticationException;
@@ -90,16 +87,7 @@ public class AuthController {
         String email = payload.get("email").get("email");
         log.info("email: " + email);
 
-        String token;
-        String headerAuth = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
-            log.info("HeaderAuth: " + headerAuth);
-            token = headerAuth.substring(7);
-        } else {
-            throw new JwtAuthenticationException("JWT token is missing or invalid");
-        }
-
-        log.info("token: " + token);
+        String token = getToken(request);
 
         String currentEmail = jwtService.getUsername(token);
         log.info(currentEmail);
@@ -109,7 +97,8 @@ public class AuthController {
 
     // Новый эндпоинт для запроса ссылки на изменение пароля
     @PostMapping("/change-password-link")
-    public String requestChangePasswordLink(@RequestBody Map<String, String> payload) {
+    public String requestChangePasswordLink(@RequestBody Map<String, String> payload,
+                                            HttpServletRequest request) {
         String newPassword1 = payload.get("newPassword1");
         log.info("newPassword1: " + newPassword1);
         String newPassword2 = payload.get("newPassword2");
@@ -117,11 +106,23 @@ public class AuthController {
         String oldPassword = payload.get("oldPassword");
         log.info("oldPassword: " + oldPassword);
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentEmail = authentication.getName();
+        String token = getToken(request);
+
+        String currentEmail = jwtService.getUsername(token);
         log.info(currentEmail);
 
         ChangePasswordRq changePasswordRq = new ChangePasswordRq(newPassword1, newPassword2, oldPassword);
         return authService.requestChangePasswordLink(changePasswordRq, currentEmail);
     }
+
+    private String getToken(HttpServletRequest request) throws JwtAuthenticationException {
+        String headerAuth = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
+            log.info("HeaderAuth: " + headerAuth);
+            return headerAuth.substring(7);
+        } else {
+            throw new JwtAuthenticationException("JWT token is missing or invalid");
+        }
+    }
+
 }

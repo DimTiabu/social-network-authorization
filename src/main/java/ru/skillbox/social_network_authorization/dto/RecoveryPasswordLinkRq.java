@@ -11,7 +11,7 @@ import java.util.UUID;
 @Setter
 public class RecoveryPasswordLinkRq {
 
-    private String temp = UUID.randomUUID().toString();
+    private String temp = UUID.randomUUID().toString().substring(0, 7);
 
     @NotBlank(message = "Укажите электронную почту")
     @Email(message = "Неправильный формат электронной почты")
