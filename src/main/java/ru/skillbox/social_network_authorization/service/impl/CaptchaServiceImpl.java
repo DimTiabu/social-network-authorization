@@ -21,6 +21,13 @@ public class CaptchaServiceImpl implements CaptchaService {
     public CaptchaDto generateCaptcha() {
         // Генерация токена капчи
         String secret = cage.getTokenGenerator().next();
+
+        // Уменьшение длины токена (не рекомендуется для капчи)
+        int desiredLength = 6; // Желаемая длина токена
+        if (secret.length() > desiredLength) {
+            secret = secret.substring(0, desiredLength);
+        }
+
         ByteArrayOutputStream os = new ByteArrayOutputStream();
 
         try {
