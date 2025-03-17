@@ -65,7 +65,7 @@ public class AuthServiceImpl implements AuthService {
         User user = findUserByEmail(request.getEmail());
 
         // Логика отправки письма с использованием стороннего сервера
-        String url = "http://212.192.20.30:45760/api/v1/email";
+        String url = "http://91.197.98.213:45760/api/v1/email";
 
         String response = restTemplate.postForObject(url, request, String.class);
 
