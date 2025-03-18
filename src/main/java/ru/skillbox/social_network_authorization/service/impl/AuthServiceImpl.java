@@ -47,6 +47,7 @@ public class AuthServiceImpl implements AuthService {
                 request.getPassword().equals(user.getToken()));
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())
                 && !request.getPassword().equals(user.getToken())) {
+            log.info("Проверка провалена, вызвана InvalidPasswordException ");
             throw new InvalidPasswordException();
         }
 
