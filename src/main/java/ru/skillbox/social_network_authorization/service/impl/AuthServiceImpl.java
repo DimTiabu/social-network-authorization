@@ -37,10 +37,11 @@ public class AuthServiceImpl implements AuthService {
 
     public TokenResponse authenticate(AuthenticateRq request) {
         User user = findUserByEmail(request.getEmail());
-        log.info("passwordEncoder.encode(user.getToken()) - " + user.getToken());
+        log.info("request.getPassword() - " + request.getPassword());
         log.info("user.getToken() - " + user.getToken());
+        log.info("user.getPassword() - " + user.getPassword());
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())
-                || !request.getPassword().equals(user.getToken())) {
+                && !request.getPassword().equals(user.getToken())) {
             throw new InvalidPasswordException();
         }
 
