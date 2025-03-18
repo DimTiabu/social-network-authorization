@@ -21,6 +21,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -35,8 +37,10 @@ public class AuthServiceImpl implements AuthService {
 
     public TokenResponse authenticate(AuthenticateRq request) {
         User user = findUserByEmail(request.getEmail());
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        log.info("passwordEncoder.encode(user.getToken()) - " + passwordEncoder.encode(user.getToken()));
+        log.info("user.getToken() - " + user.getToken());
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())
+                && !passwordEncoder.matches(request.getPassword(), passwordEncoder.encode(user.getToken()))) {
             throw new InvalidPasswordException();
         }
 
@@ -68,9 +72,11 @@ public class AuthServiceImpl implements AuthService {
         String url = "http://212.192.20.30:45760/api/v1/email";
 
         String response = restTemplate.postForObject(url, request, String.class);
-
-        user.setToken(request.getTemp());
-        userRepository.save(user);
+        if (Objects.equals(response, "OK")) {
+            user.setToken(request.getTemp());
+//            user.setPassword(request.getTemp());
+            userRepository.save(user);
+        }
 
         return response;
     }
@@ -130,7 +136,8 @@ public class AuthServiceImpl implements AuthService {
         User user = findUserByEmail(currentEmail);
         user.setEmail(email);
         userRepository.save(user);
-        return "Электронная почта успешно изменена";    }
+        return "Электронная почта успешно изменена";
+    }
 
     @Override
     public String requestChangePasswordLink(ChangePasswordRq changePasswordRq, String email) {
