@@ -117,7 +117,7 @@ public class AuthServiceImpl implements AuthService {
         log.info("OldPassword: " + changePasswordRq.getOldPassword());
         log.info("NewPassword: " + changePasswordRq.getNewPassword1());
 
-        if (!passwordEncoder.matches(user.getPassword(), changePasswordRq.getOldPassword())) {
+        if (!passwordEncoder.matches(changePasswordRq.getOldPassword(), user.getPassword())) {
             log.error("Неверный старый пароль для пользователя: " + user.getEmail());
             return "ERROR: Неверный старый пароль";
         }
