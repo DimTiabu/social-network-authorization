@@ -40,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
         log.info("passwordEncoder.encode(user.getToken()) - " + user.getToken());
         log.info("user.getToken() - " + user.getToken());
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())
-                && !request.getPassword().equals(user.getToken())) {
+                || !request.getPassword().equals(user.getToken())) {
             throw new InvalidPasswordException();
         }
 
