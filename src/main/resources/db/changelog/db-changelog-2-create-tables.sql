@@ -3,8 +3,7 @@ CREATE TABLE IF NOT EXISTS schema_authorization.users (
                                                           id UUID PRIMARY KEY,
                                                           email VARCHAR(255) NOT NULL UNIQUE,
                                                           password VARCHAR(255) NOT NULL,
-                                                          account_id UUID,
-                                                          token VARCHAR(255)
+                                                          account_id UUID
 );
 
 -- Создание таблицы "user_roles" в схеме schema_authorization
