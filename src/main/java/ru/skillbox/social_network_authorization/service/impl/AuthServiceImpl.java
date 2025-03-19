@@ -2,6 +2,8 @@ package ru.skillbox.social_network_authorization.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,7 +23,17 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +46,11 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     @Autowired
     private RestTemplate restTemplate;
+
+    @Value("${app.mail.user}")
+    private String mailUsername;
+    @Value("${app.mail.password}")
+    private String mailPassword;
 
     public TokenResponse authenticate(AuthenticateRq request) {
         User user = findUserByEmail(request.getEmail());
@@ -70,23 +87,78 @@ public class AuthServiceImpl implements AuthService {
         return new TokenResponse(jwt, refreshToken.getToken());
     }
 
-    @Transactional
-    public String sendRecoveryEmail(RecoveryPasswordLinkRq request) {
+    // Метод sendRecoveryEmail с использованием стороннего сервера
+//    @Transactional
+//    public String sendRecoveryEmail(RecoveryPasswordLinkRq request) {
+//
+//        User user = findUserByEmail(request.getEmail());
+//
+//        // Логика отправки письма с использованием стороннего сервера
+//        String url = "http://212.192.20.30:45760/api/v1/email";
+//
+//        String response = restTemplate.postForObject(url, request, String.class);
+//        if (Objects.equals(response, "OK")) {
+//            user.setToken(request.getTemp());
+////            user.setPassword(request.getTemp());
+//            userRepository.save(user);
+//        }
+//
+//        return response;
+//    }
 
-        User user = findUserByEmail(request.getEmail());
+    // Метод sendRecoveryEmail с отправкой письма на почту без использования стороннего сервера
 
-        // Логика отправки письма с использованием стороннего сервера
-        String url = "http://212.192.20.30:45760/api/v1/email";
+@Transactional
+public String sendRecoveryEmail(RecoveryPasswordLinkRq request) {
 
-        String response = restTemplate.postForObject(url, request, String.class);
-        if (Objects.equals(response, "OK")) {
-            user.setToken(request.getTemp());
-//            user.setPassword(request.getTemp());
-            userRepository.save(user);
+    User user = findUserByEmail(request.getEmail());
+
+    // Логика отправки письма с использованием SMTP
+    Properties prop = new Properties();
+    prop.put("mail.smtp.auth", "true");
+    prop.put("mail.smtp.host", "smtp.mail.ru"); // Замените на ваш SMTP-сервер
+    prop.put("mail.smtp.port", "587"); // Замените на порт вашего SMTP-сервера
+    prop.put("mail.smtp.starttls.enable", "true");
+    prop.put("mail.smtp.connectiontimeout", "5000"); // Таймаут на подключение
+
+    Session session = Session.getInstance(prop, new javax.mail.Authenticator() {
+        @Override
+        protected PasswordAuthentication getPasswordAuthentication() {
+            return new PasswordAuthentication(mailUsername, mailPassword); // Замените на ваши учётные данные
         }
+    });
 
-        return response;
+    ClassPathResource resource = new ClassPathResource("templates/recovery_email.html");
+
+    try (InputStream inputStream = resource.getInputStream();
+         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+
+        String htmlContent = reader.lines().collect(Collectors.joining("\n"));
+
+        // Подстановка значения в HTML
+        htmlContent = htmlContent.replace("%temp%", request.getTemp());
+
+        Message message = new MimeMessage(session);
+        message.setFrom(new InternetAddress(mailUsername)); // Ваш e-mail
+        message.setRecipient(Message.RecipientType.TO, new InternetAddress(request.getEmail()));
+        message.setSubject("Восстановление пароля");
+
+        // Устанавливаем HTML-содержимое письма
+        message.setContent(htmlContent, "text/html; charset=UTF-8");
+        Transport.send(message);
+
+        log.info("Письмо успешно отправлено на адрес: " + request.getEmail());
+
+    } catch (MessagingException | IOException e) {
+        log.error("Ошибка при отправке письма: " + e.getMessage());
+        return "ERROR";
     }
+
+    user.setToken(request.getTemp());
+    userRepository.save(user);
+
+    return "OK";
+}
 
     @Transactional
     public String updatePassword(String recoveryLink, SetPasswordRq request) {
