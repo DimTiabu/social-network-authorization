@@ -32,9 +32,6 @@ public class User {
     @Column(name = "account_id")
     private UUID accountId;
 
-    @Column(unique = true)
-    private String token;
-
     @ElementCollection(targetClass = UserRole.class, fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "roles", nullable = false)

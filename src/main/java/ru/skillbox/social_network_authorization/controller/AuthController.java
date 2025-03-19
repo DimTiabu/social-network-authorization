@@ -40,12 +40,6 @@ public class AuthController {
         return authService.sendRecoveryEmail(request);
     }
 
-    @PostMapping("/password/recovery/{recoveryLink}")
-    public String setNewPassword(@PathVariable String recoveryLink,
-                                 @RequestBody SetPasswordRq request) {
-        return authService.updatePassword(recoveryLink, request);
-    }
-
     @GetMapping("/validate")
     public Boolean validateToken(@RequestParam String token) {
         return jwtService.validate(token);

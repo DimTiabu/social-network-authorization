@@ -17,7 +17,6 @@ public final class UserMapperFactory {
         return User.builder()
                 .email(registrationDto.getEmail())
                 .password(registrationDto.getPassword1())
-                .token(registrationDto.getToken())
                 .build();
     }
 }

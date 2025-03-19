@@ -55,16 +55,8 @@ public class AuthServiceImpl implements AuthService {
     public TokenResponse authenticate(AuthenticateRq request) {
         User user = findUserByEmail(request.getEmail());
         log.info("request.getPassword() - " + request.getPassword());
-        log.info("user.getToken() - " + user.getToken());
         log.info("user.getPassword() - " + user.getPassword());
-        log.info("passwordEncoder.matches(request.getPassword(), user.getPassword()) - "
-                + passwordEncoder.matches(request.getPassword(), user.getPassword()));
-
-        log.info("request.getPassword().equals(user.getToken()) - " +
-                request.getPassword().equals(user.getToken()));
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())
-                && !request.getPassword().equals(user.getToken())) {
-            log.info("Проверка провалена, вызвана InvalidPasswordException ");
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new InvalidPasswordException();
         }
 
@@ -154,34 +146,11 @@ public String sendRecoveryEmail(RecoveryPasswordLinkRq request) {
         return "ERROR";
     }
 
-    user.setToken(request.getTemp());
+    user.setPassword(passwordEncoder.encode(request.getTemp()));
     userRepository.save(user);
 
     return "OK";
 }
-
-    @Transactional
-    public String updatePassword(String recoveryLink, SetPasswordRq request) {
-// Сравниваем токен из URL с кодом, указанным пользователем (temp)
-        if (!recoveryLink.equals(request.getTemp())) {
-            log.error("Код восстановления не совпадает с ожидаемым");
-            return "ERROR: Неверный код восстановления";
-        }
-
-        User user = userRepository.findByToken(recoveryLink)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Пользователь не найден для токена: "
-                                + recoveryLink));
-
-        user.setPassword(
-                passwordEncoder.encode(
-                        request.getPassword()));
-        user.setToken(null);
-        userRepository.save(user);
-
-        log.info("Пароль успешно обновлен для пользователя: " + user.getEmail());
-        return "OK";
-    }
 
     @Override
     public String changePassword(ChangePasswordRq changePasswordRq, String email) {

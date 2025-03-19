@@ -28,7 +28,4 @@ public class RegistrationDto {
 
     private String captchaCode;
 
-    @Builder.Default
-    private String token = null;
-
 }

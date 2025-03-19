@@ -9,8 +9,6 @@ public interface AuthService {
 
     String sendRecoveryEmail(RecoveryPasswordLinkRq request);
 
-    String updatePassword(String recoveryLink, SetPasswordRq request);
-
     String changePassword(ChangePasswordRq changePasswordRq, String email);
 
     String changeEmail(String email);
