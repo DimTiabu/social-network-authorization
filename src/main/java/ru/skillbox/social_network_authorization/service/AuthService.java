@@ -11,9 +11,6 @@ public interface AuthService {
 
     String changePassword(ChangePasswordRq changePasswordRq, String email);
 
-    String changeEmail(String email);
+    String changeEmail(String email, String currentEmail);
 
-    String requestChangeEmailLink(String email, String currentEmail);
-
-    String requestChangePasswordLink(ChangePasswordRq changePasswordRq, String email);
 }

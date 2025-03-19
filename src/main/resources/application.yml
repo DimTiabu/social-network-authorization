@@ -35,8 +35,8 @@ app:
     kafkaMessageGroupId: "kafka-account-group-id"
   jwt:
     secret: "someSecretKey"
-    tokenExpiration: 5m
-    refreshTokenExpiration: 10m
+    tokenExpiration: 15m
+    refreshTokenExpiration: 24h
   mail:
     user: ${MAIL_USER:tdsuser45@mail.ru}
     password: ${MAIL_PASSWORD:n3c421ZcGyinuqdKJyie}

@@ -1,7 +1,6 @@
 package ru.skillbox.social_network_authorization.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,7 +9,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 import ru.skillbox.social_network_authorization.dto.*;
 import ru.skillbox.social_network_authorization.entity.RefreshToken;
 import ru.skillbox.social_network_authorization.entity.User;
@@ -31,7 +29,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -44,8 +41,6 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenService refreshTokenService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    @Autowired
-    private RestTemplate restTemplate;
 
     @Value("${app.mail.user}")
     private String mailUsername;
@@ -54,9 +49,9 @@ public class AuthServiceImpl implements AuthService {
 
     public TokenResponse authenticate(AuthenticateRq request) {
         User user = findUserByEmail(request.getEmail());
-        log.info("request.getPassword() - " + request.getPassword());
-        log.info("encoded request.getPassword() - " + passwordEncoder.encode(request.getPassword()));
-        log.info("user.getPassword() - " + user.getPassword());
+        log.info("request.getPassword() - {}", request.getPassword());
+        log.info("encoded request.getPassword() - {}", passwordEncoder.encode(request.getPassword()));
+        log.info("user.getPassword() - {}", user.getPassword());
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new InvalidPasswordException();
         }
@@ -72,10 +67,10 @@ public class AuthServiceImpl implements AuthService {
         AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
 
         String jwt = jwtServiceImpl.generateJwtToken(userDetails);
-        log.info("Сгенерирован jwt: " + jwt);
+        log.info("Сгенерирован jwt: {}", jwt);
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
-        log.info("Сгенерирован refreshToken: " + refreshToken);
+        log.info("Сгенерирован refreshToken: {}", refreshToken);
 
         return new TokenResponse(jwt, refreshToken.getToken());
     }
@@ -119,17 +114,15 @@ public class AuthServiceImpl implements AuthService {
             message.setContent(htmlContent, "text/html; charset=UTF-8");
             Transport.send(message);
 
-            log.info("Письмо успешно отправлено на адрес: " + request.getEmail());
+            log.info("Письмо успешно отправлено на адрес: {}", request.getEmail());
 
         } catch (MessagingException | IOException e) {
-            log.error("Ошибка при отправке письма: " + e.getMessage());
+            log.error("Ошибка при отправке письма: {}", e.getMessage());
             return "ERROR";
         }
 
-        log.info("Старый пароль пользователя: " + user.getPassword());
         user.setPassword(passwordEncoder.encode(request.getTemp()));
         userRepository.save(user);
-        log.info("Новый хеш пароля пользователя: " + user.getPassword());
 
         return "OK";
     }
@@ -137,11 +130,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String changePassword(ChangePasswordRq changePasswordRq, String email) {
         User user = findUserByEmail(email);
-        log.info("OldPassword: " + changePasswordRq.getOldPassword());
-        log.info("NewPassword: " + changePasswordRq.getNewPassword1());
+        log.info("OldPassword: {}", changePasswordRq.getOldPassword());
+        log.info("NewPassword: {}", changePasswordRq.getNewPassword1());
 
         if (!passwordEncoder.matches(changePasswordRq.getOldPassword(), user.getPassword())) {
-            log.error("Неверный старый пароль для пользователя: " + user.getEmail());
+            log.error("Неверный старый пароль для пользователя: {}", user.getEmail());
             return "ERROR: Неверный старый пароль";
         }
 
@@ -152,28 +145,17 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(changePasswordRq.getNewPassword1()));
         userRepository.save(user);
 
-        log.info("Пароль успешно изменен для пользователя: " + user.getEmail());
+        log.info("Пароль успешно изменен для пользователя: {}", user.getEmail());
         return "Пароль успешно изменен";
     }
 
     @Override
-    public String changeEmail(String email) {
-        return "";
-    }
-
-    @Override
-    public String requestChangeEmailLink(String email, String currentEmail) {
+    public String changeEmail(String email, String currentEmail) {
         User user = findUserByEmail(currentEmail);
         user.setEmail(email);
         userRepository.save(user);
         return "Электронная почта успешно изменена";
     }
-
-    @Override
-    public String requestChangePasswordLink(ChangePasswordRq changePasswordRq, String email) {
-        return changePassword(changePasswordRq, email);
-    }
-
 
     private User findUserByEmail(String email) {
         return userRepository.findByEmail(email)

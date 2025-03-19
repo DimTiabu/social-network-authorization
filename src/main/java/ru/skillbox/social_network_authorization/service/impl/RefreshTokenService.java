@@ -92,7 +92,7 @@ public class RefreshTokenService {
     }
 
     public TokenResponse refreshTokens(String refreshToken, AppUserDetails userDetails) {
-        log.info("Запуск метода refreshTokens; refreshToken = " + refreshToken);
+        log.info("Запуск метода refreshTokens; refreshToken = {}", refreshToken);
         RefreshToken storedRefreshToken = findByRefreshToken(refreshToken);
 
         checkRefreshToken(storedRefreshToken);
