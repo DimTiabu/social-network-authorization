@@ -80,78 +80,59 @@ public class AuthServiceImpl implements AuthService {
         return new TokenResponse(jwt, refreshToken.getToken());
     }
 
-    // Метод sendRecoveryEmail с использованием стороннего сервера
-//    @Transactional
-//    public String sendRecoveryEmail(RecoveryPasswordLinkRq request) {
-//
-//        User user = findUserByEmail(request.getEmail());
-//
-//        // Логика отправки письма с использованием стороннего сервера
-//        String url = "http://212.192.20.30:45760/api/v1/email";
-//
-//        String response = restTemplate.postForObject(url, request, String.class);
-//        if (Objects.equals(response, "OK")) {
-//            user.setToken(request.getTemp());
-////            user.setPassword(request.getTemp());
-//            userRepository.save(user);
-//        }
-//
-//        return response;
-//    }
+    @Transactional
+    public String sendRecoveryEmail(RecoveryPasswordLinkRq request) {
 
-    // Метод sendRecoveryEmail с отправкой письма на почту без использования стороннего сервера
+        User user = findUserByEmail(request.getEmail());
 
-@Transactional
-public String sendRecoveryEmail(RecoveryPasswordLinkRq request) {
+        // Логика отправки письма с использованием SMTP
+        Properties prop = new Properties();
+        prop.put("mail.smtp.auth", "true");
+        prop.put("mail.smtp.host", "smtp.mail.ru"); // Замените на ваш SMTP-сервер
+        prop.put("mail.smtp.port", "587"); // Замените на порт вашего SMTP-сервера
+        prop.put("mail.smtp.starttls.enable", "true");
+        prop.put("mail.smtp.connectiontimeout", "5000"); // Таймаут на подключение
 
-    User user = findUserByEmail(request.getEmail());
+        Session session = Session.getInstance(prop, new javax.mail.Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(mailUsername, mailPassword); // Замените на ваши учётные данные
+            }
+        });
 
-    // Логика отправки письма с использованием SMTP
-    Properties prop = new Properties();
-    prop.put("mail.smtp.auth", "true");
-    prop.put("mail.smtp.host", "smtp.mail.ru"); // Замените на ваш SMTP-сервер
-    prop.put("mail.smtp.port", "587"); // Замените на порт вашего SMTP-сервера
-    prop.put("mail.smtp.starttls.enable", "true");
-    prop.put("mail.smtp.connectiontimeout", "5000"); // Таймаут на подключение
+        ClassPathResource resource = new ClassPathResource("templates/recovery_email.html");
 
-    Session session = Session.getInstance(prop, new javax.mail.Authenticator() {
-        @Override
-        protected PasswordAuthentication getPasswordAuthentication() {
-            return new PasswordAuthentication(mailUsername, mailPassword); // Замените на ваши учётные данные
+        try (InputStream inputStream = resource.getInputStream();
+             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+
+            String htmlContent = reader.lines().collect(Collectors.joining("\n"));
+
+            // Подстановка значения в HTML
+            htmlContent = htmlContent.replace("%temp%", request.getTemp());
+
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(mailUsername)); // Ваш e-mail
+            message.setRecipient(Message.RecipientType.TO, new InternetAddress(request.getEmail()));
+            message.setSubject("Восстановление пароля");
+
+            // Устанавливаем HTML-содержимое письма
+            message.setContent(htmlContent, "text/html; charset=UTF-8");
+            Transport.send(message);
+
+            log.info("Письмо успешно отправлено на адрес: " + request.getEmail());
+
+        } catch (MessagingException | IOException e) {
+            log.error("Ошибка при отправке письма: " + e.getMessage());
+            return "ERROR";
         }
-    });
 
-    ClassPathResource resource = new ClassPathResource("templates/recovery_email.html");
+        log.info("Старый пароль пользователя: " + user.getPassword());
+        user.setPassword(passwordEncoder.encode(request.getTemp()));
+        userRepository.save(user);
+        log.info("Новый хеш пароля пользователя: " + user.getPassword());
 
-    try (InputStream inputStream = resource.getInputStream();
-         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-
-        String htmlContent = reader.lines().collect(Collectors.joining("\n"));
-
-        // Подстановка значения в HTML
-        htmlContent = htmlContent.replace("%temp%", request.getTemp());
-
-        Message message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(mailUsername)); // Ваш e-mail
-        message.setRecipient(Message.RecipientType.TO, new InternetAddress(request.getEmail()));
-        message.setSubject("Восстановление пароля");
-
-        // Устанавливаем HTML-содержимое письма
-        message.setContent(htmlContent, "text/html; charset=UTF-8");
-        Transport.send(message);
-
-        log.info("Письмо успешно отправлено на адрес: " + request.getEmail());
-
-    } catch (MessagingException | IOException e) {
-        log.error("Ошибка при отправке письма: " + e.getMessage());
-        return "ERROR";
+        return "OK";
     }
-
-    user.setPassword(passwordEncoder.encode(request.getTemp()));
-    userRepository.save(user);
-
-    return "OK";
-}
 
     @Override
     public String changePassword(ChangePasswordRq changePasswordRq, String email) {
