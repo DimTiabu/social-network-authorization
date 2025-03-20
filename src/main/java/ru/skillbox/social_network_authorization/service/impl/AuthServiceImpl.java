@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,12 +47,13 @@ public class AuthServiceImpl implements AuthService {
     @Value("${app.mail.password}")
     private String mailPassword;
 
-    public TokenResponse authenticate(AuthenticateRq request, Long telegramChatId) {
+    public TokenResponse authenticate(AuthenticateRq request, String telegramChatId) {
         User user;
 
         if (telegramChatId != null) {
             // 1. Ищем пользователя по email и chatId
-            user = findUserByEmailAndChatId(request.getEmail(), telegramChatId);
+            Long chatId = Long.parseLong(telegramChatId);
+            user = findUserByEmailAndChatId(request.getEmail(), chatId);
 
             if (user == null) {
                 throw new EntityNotFoundException("User with email " + request.getEmail() + " and chatId " + telegramChatId + " not found");
@@ -68,7 +68,7 @@ public class AuthServiceImpl implements AuthService {
             );
             SecurityContextHolder.getContext().setAuthentication(authToken);
 
-            user.setChatId(telegramChatId);
+            user.setChatId(chatId);
             userRepository.save(user);
 
         } else {

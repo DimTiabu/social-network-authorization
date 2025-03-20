@@ -14,7 +14,6 @@ import ru.skillbox.social_network_authorization.service.JwtService;
 import ru.skillbox.social_network_authorization.service.impl.RefreshTokenService;
 
 import java.util.Map;
-import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -33,7 +32,7 @@ public class AuthController {
                                @RequestHeader(value = "Telegram", required = false) String telegramHeader) {
         log.info("Запущен метод login");
 
-        return authService.authenticate(request, Long.parseLong(telegramHeader));
+        return authService.authenticate(request, telegramHeader);
     }
 
     @PostMapping("/password/recovery/")

@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface AuthService {
-    TokenResponse authenticate(AuthenticateRq request, Long telegramChatId);
+    TokenResponse authenticate(AuthenticateRq request, String telegramChatId);
 
     String sendRecoveryEmail(RecoveryPasswordLinkRq request);
 
