@@ -14,6 +14,7 @@ import ru.skillbox.social_network_authorization.service.JwtService;
 import ru.skillbox.social_network_authorization.service.impl.RefreshTokenService;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -28,10 +29,11 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/login")
-    public TokenResponse login(@RequestBody AuthenticateRq request) {
+    public TokenResponse login(@RequestBody AuthenticateRq request,
+                               @RequestHeader(value = "Telegram", required = false) UUID telegramHeader) {
         log.info("Запущен метод login");
 
-        return authService.authenticate(request);
+        return authService.authenticate(request, telegramHeader);
     }
 
     @PostMapping("/password/recovery/")
@@ -53,7 +55,7 @@ public class AuthController {
         log.info("Запущен метод refreshToken");
 
         String refreshToken = payload.get("refreshToken");
-        log.info("refreshToken: " + refreshToken);
+        log.info("refreshToken: {}", refreshToken);
 
         AppUserDetails userDetails = refreshTokenService.getUserByRefreshToken(refreshToken);
 

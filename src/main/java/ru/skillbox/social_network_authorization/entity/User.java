@@ -32,6 +32,9 @@ public class User {
     @Column(name = "account_id")
     private UUID accountId;
 
+    @Column(name = "telegram_chat_id")
+    private UUID chatId;
+
     @ElementCollection(targetClass = UserRole.class, fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "roles", nullable = false)

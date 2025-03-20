@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,33 +48,96 @@ public class AuthServiceImpl implements AuthService {
     @Value("${app.mail.password}")
     private String mailPassword;
 
-    public TokenResponse authenticate(AuthenticateRq request) {
-        User user = findUserByEmail(request.getEmail());
-        log.info("request.getPassword() - {}", request.getPassword());
-        log.info("encoded request.getPassword() - {}", passwordEncoder.encode(request.getPassword()));
-        log.info("user.getPassword() - {}", user.getPassword());
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new InvalidPasswordException();
+    public TokenResponse authenticate(AuthenticateRq request, UUID telegramChatId) {
+        User user;
+
+        if (telegramChatId != null) {
+            // 1. Ищем пользователя по email и chatId
+            user = findUserByEmailAndChatId(request.getEmail(), telegramChatId);
+
+            if (user == null) {
+                throw new EntityNotFoundException("User with email " + request.getEmail() + " and chatId " + telegramChatId + " not found");
+            }
+
+            log.info("User authenticated via Telegram chatId, skipping password check");
+
+            // 2. Принудительно устанавливаем аутентификацию (без проверки пароля)
+            AppUserDetails userDetails = new AppUserDetails(user);
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities()
+            );
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+
+            user.setChatId(UUID.randomUUID());
+            userRepository.save(user);
+
+        } else {
+            // Стандартная логика: ищем по email
+            user = findUserByEmail(request.getEmail());
+
+            log.info("request.getPassword() - {}", request.getPassword());
+            log.info("encoded request.getPassword() - {}", passwordEncoder.encode(request.getPassword()));
+            log.info("user.getPassword() - {}", user.getPassword());
+
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                throw new InvalidPasswordException();
+            }
+
+            // Аутентификация через authenticationManager
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    ));
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                ));
+        // Генерация токенов
+        AppUserDetails currentUserDetails = (AppUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = jwtServiceImpl.generateJwtToken(currentUserDetails);
+        log.info("Сгенерирован jwt: " + jwt);
 
-        AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
-
-        String jwt = jwtServiceImpl.generateJwtToken(userDetails);
-        log.info("Сгенерирован jwt: {}", jwt);
-
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
-        log.info("Сгенерирован refreshToken: {}", refreshToken);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(currentUserDetails.getId());
+        log.info("Сгенерирован refreshToken: " + refreshToken);
 
         return new TokenResponse(jwt, refreshToken.getToken());
     }
+
+    public User findUserByEmailAndChatId(String email, UUID chatId) {
+        return userRepository.findByEmailAndChatId(email, chatId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Пользователь не зарегистрирован"));
+    }
+
+//    public TokenResponse authenticate(AuthenticateRq request) {
+//        User user = findUserByEmail(request.getEmail());
+//        log.info("request.getPassword() - {}", request.getPassword());
+//        log.info("encoded request.getPassword() - {}", passwordEncoder.encode(request.getPassword()));
+//        log.info("user.getPassword() - {}", user.getPassword());
+//        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+//            throw new InvalidPasswordException();
+//        }
+//
+//        Authentication authentication = authenticationManager.authenticate(
+//                new UsernamePasswordAuthenticationToken(
+//                        request.getEmail(),
+//                        request.getPassword()
+//                ));
+//
+//        SecurityContextHolder.getContext().setAuthentication(authentication);
+//
+//        AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
+//
+//        String jwt = jwtServiceImpl.generateJwtToken(userDetails);
+//        log.info("Сгенерирован jwt: {}", jwt);
+//
+//        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
+//        log.info("Сгенерирован refreshToken: {}", refreshToken);
+//
+//        return new TokenResponse(jwt, refreshToken.getToken());
+//    }
 
     @Transactional
     public String sendRecoveryEmail(RecoveryPasswordLinkRq request) {
