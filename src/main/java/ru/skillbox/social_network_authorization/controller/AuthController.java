@@ -30,10 +30,10 @@ public class AuthController {
 
     @PostMapping("/login")
     public TokenResponse login(@RequestBody AuthenticateRq request,
-                               @RequestHeader(value = "Telegram", required = false) UUID telegramHeader) {
+                               @RequestHeader(value = "Telegram", required = false) String telegramHeader) {
         log.info("Запущен метод login");
 
-        return authService.authenticate(request, telegramHeader);
+        return authService.authenticate(request, Long.parseLong(telegramHeader));
     }
 
     @PostMapping("/password/recovery/")

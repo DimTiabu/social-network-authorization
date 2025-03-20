@@ -33,7 +33,7 @@ public class User {
     private UUID accountId;
 
     @Column(name = "telegram_chat_id")
-    private UUID chatId;
+    private Long chatId;
 
     @ElementCollection(targetClass = UserRole.class, fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))

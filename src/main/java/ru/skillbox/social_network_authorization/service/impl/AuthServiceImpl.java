@@ -48,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
     @Value("${app.mail.password}")
     private String mailPassword;
 
-    public TokenResponse authenticate(AuthenticateRq request, UUID telegramChatId) {
+    public TokenResponse authenticate(AuthenticateRq request, Long telegramChatId) {
         User user;
 
         if (telegramChatId != null) {
@@ -105,7 +105,7 @@ public class AuthServiceImpl implements AuthService {
         return new TokenResponse(jwt, refreshToken.getToken());
     }
 
-    public User findUserByEmailAndChatId(String email, UUID chatId) {
+    public User findUserByEmailAndChatId(String email, Long chatId) {
         return userRepository.findByEmailAndChatId(email, chatId)
                 .orElseThrow(() ->
                         new EntityNotFoundException("Пользователь не зарегистрирован"));
