@@ -51,23 +51,22 @@ public class AuthServiceImpl implements AuthService {
         if (telegramChatId != null) {
             // 1. Ищем пользователя по email и chatId
             Long chatId = Long.parseLong(telegramChatId);
-            User user = userRepository.findByEmailAndChatId(request.getEmail(), chatId).orElse(null);
+            User currentUser = userRepository.findByEmailAndChatId(request.getEmail(), chatId).orElse(null);
 
-            if (user == null) {
-                validatePassword(request);
+            if (currentUser == null) {
+                User user = validatePassword(request);
+                user.setChatId(chatId);
+                userRepository.save(user);
             } else {
 
                 log.info("User authenticated via Telegram chatId, skipping password check");
 
                 // 2. Принудительно устанавливаем аутентификацию (без проверки пароля)
-                AppUserDetails userDetails = new AppUserDetails(user);
+                AppUserDetails userDetails = new AppUserDetails(currentUser);
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities()
                 );
                 SecurityContextHolder.getContext().setAuthentication(authToken);
-
-                user.setChatId(chatId);
-                userRepository.save(user);
             }
 
         } else {
@@ -87,13 +86,8 @@ public class AuthServiceImpl implements AuthService {
         return new TokenResponse(jwt, refreshToken.getToken());
     }
 
-    private void validatePassword(AuthenticateRq request){
-        log.info(request.getEmail());
+    private User validatePassword(AuthenticateRq request){
         User user = findUserByEmail(request.getEmail());
-
-        log.info("request.getPassword() - {}", request.getPassword());
-        log.info("encoded request.getPassword() - {}", passwordEncoder.encode(request.getPassword()));
-        log.info("user.getPassword() - {}", user.getPassword());
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new InvalidPasswordException();
@@ -107,6 +101,7 @@ public class AuthServiceImpl implements AuthService {
                 ));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        return user;
     }
 
 //    public TokenResponse authenticate(AuthenticateRq request) {
