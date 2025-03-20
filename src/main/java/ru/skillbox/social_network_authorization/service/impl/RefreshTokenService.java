@@ -49,13 +49,14 @@ public class RefreshTokenService {
             User user = userRepository.findByAccountId(storedRefreshToken.getAccountId())
                     .orElseThrow(() -> new EntityNotFoundException("Пользователь не зарегистрирован"));
 
+            log.info("Пользователь с email {} использует refresh-токен", user.getEmail());
+
             return new AppUserDetails(user);
         } catch (RefreshTokenException e) {
             logout();
             throw e;
         }
     }
-
 
     public RefreshToken createRefreshToken(UUID accountId) {
         String token = Jwts.builder()
@@ -97,6 +98,10 @@ public class RefreshTokenService {
 
         checkRefreshToken(storedRefreshToken);
 
+        User user = userRepository.findByAccountId(userDetails.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
+        log.info("Генерация новых токенов для пользователя с email {}", user.getEmail());
+
         // Генерируем новые токены
         String newAccessToken = jwtService.generateJwtToken(userDetails);
         RefreshToken newRefreshToken = createRefreshToken(userDetails.getId());
@@ -113,8 +118,11 @@ public class RefreshTokenService {
         if (currentPrincipal instanceof AppUserDetails userDetails) {
             UUID accountId = userDetails.getId();
 
-            deleteByAccountId(accountId);
+            User user = userRepository.findByAccountId(accountId)
+                    .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
+            log.info("Пользователь с email {} выходит из системы", user.getEmail());
 
+            deleteByAccountId(accountId);
         }
         return "Успешный выход из аккаунта";
     }

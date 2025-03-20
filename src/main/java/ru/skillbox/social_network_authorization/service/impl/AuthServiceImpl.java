@@ -48,51 +48,31 @@ public class AuthServiceImpl implements AuthService {
     private String mailPassword;
 
     public TokenResponse authenticate(AuthenticateRq request, String telegramChatId) {
-        User user;
-
         if (telegramChatId != null) {
             // 1. Ищем пользователя по email и chatId
             Long chatId = Long.parseLong(telegramChatId);
-            user = findUserByEmailAndChatId(request.getEmail(), chatId);
+            User user = userRepository.findByEmailAndChatId(request.getEmail(), chatId).orElse(null);
 
             if (user == null) {
-                throw new EntityNotFoundException("User with email " + request.getEmail() + " and chatId " + telegramChatId + " not found");
+                validatePassword(request);
+            } else {
+
+                log.info("User authenticated via Telegram chatId, skipping password check");
+
+                // 2. Принудительно устанавливаем аутентификацию (без проверки пароля)
+                AppUserDetails userDetails = new AppUserDetails(user);
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities()
+                );
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                user.setChatId(chatId);
+                userRepository.save(user);
             }
-
-            log.info("User authenticated via Telegram chatId, skipping password check");
-
-            // 2. Принудительно устанавливаем аутентификацию (без проверки пароля)
-            AppUserDetails userDetails = new AppUserDetails(user);
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities()
-            );
-            SecurityContextHolder.getContext().setAuthentication(authToken);
-
-            user.setChatId(chatId);
-            userRepository.save(user);
 
         } else {
             // Стандартная логика: ищем по email
-
-            log.info(request.getEmail());
-            user = findUserByEmail(request.getEmail());
-
-            log.info("request.getPassword() - {}", request.getPassword());
-            log.info("encoded request.getPassword() - {}", passwordEncoder.encode(request.getPassword()));
-            log.info("user.getPassword() - {}", user.getPassword());
-
-            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-                throw new InvalidPasswordException();
-            }
-
-            // Аутентификация через authenticationManager
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getEmail(),
-                            request.getPassword()
-                    ));
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            validatePassword(request);
         }
 
         // Генерация токенов
@@ -107,10 +87,26 @@ public class AuthServiceImpl implements AuthService {
         return new TokenResponse(jwt, refreshToken.getToken());
     }
 
-    public User findUserByEmailAndChatId(String email, Long chatId) {
-        return userRepository.findByEmailAndChatId(email, chatId)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Пользователь не зарегистрирован"));
+    private void validatePassword(AuthenticateRq request){
+        log.info(request.getEmail());
+        User user = findUserByEmail(request.getEmail());
+
+        log.info("request.getPassword() - {}", request.getPassword());
+        log.info("encoded request.getPassword() - {}", passwordEncoder.encode(request.getPassword()));
+        log.info("user.getPassword() - {}", user.getPassword());
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new InvalidPasswordException();
+        }
+
+        // Аутентификация через authenticationManager
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                ));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
 //    public TokenResponse authenticate(AuthenticateRq request) {
