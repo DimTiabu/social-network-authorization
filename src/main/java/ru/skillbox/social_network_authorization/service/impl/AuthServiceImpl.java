@@ -68,7 +68,7 @@ public class AuthServiceImpl implements AuthService {
             );
             SecurityContextHolder.getContext().setAuthentication(authToken);
 
-            user.setChatId(UUID.randomUUID());
+            user.setChatId(telegramChatId);
             userRepository.save(user);
 
         } else {
