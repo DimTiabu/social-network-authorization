@@ -31,6 +31,7 @@ public class AuthController {
     public TokenResponse login(@RequestBody AuthenticateRq request,
                                @RequestHeader(value = "Telegram", required = false) String telegramHeader) {
         log.info("Запущен метод login");
+        log.info("telegramHeader: {}", telegramHeader);
 
         return authService.authenticate(request, telegramHeader);
     }

@@ -73,6 +73,8 @@ public class AuthServiceImpl implements AuthService {
 
         } else {
             // Стандартная логика: ищем по email
+
+            log.info(request.getEmail());
             user = findUserByEmail(request.getEmail());
 
             log.info("request.getPassword() - {}", request.getPassword());
