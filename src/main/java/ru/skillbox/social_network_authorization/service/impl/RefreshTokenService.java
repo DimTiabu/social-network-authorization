@@ -1,5 +1,6 @@
 package ru.skillbox.social_network_authorization.service.impl;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.persistence.EntityNotFoundException;
@@ -39,15 +40,16 @@ public class RefreshTokenService {
 
     public RefreshToken findByRefreshToken(String refreshToken) {
         return refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new RefreshTokenException(refreshToken, "Недействительный refresh-токен!"));
+                .orElseThrow(() -> new RefreshTokenException(refreshToken,
+                        "Недействительный refresh-токен для пользователя " +
+                                getEmailFromRefreshToken(refreshToken) + "!"));
     }
 
     public AppUserDetails getUserByRefreshToken(String refreshToken) {
         try {
             RefreshToken storedRefreshToken = findByRefreshToken(refreshToken);
 
-            User user = userRepository.findByAccountId(storedRefreshToken.getAccountId())
-                    .orElseThrow(() -> new EntityNotFoundException("Пользователь не зарегистрирован"));
+            User user = findByAccountId(storedRefreshToken.getAccountId());
 
             log.info("Пользователь с email {} использует refresh-токен", user.getEmail());
 
@@ -93,13 +95,12 @@ public class RefreshTokenService {
     }
 
     public TokenResponse refreshTokens(String refreshToken, AppUserDetails userDetails) {
-        log.info("Запуск метода refreshTokens; refreshToken = {}", refreshToken);
         RefreshToken storedRefreshToken = findByRefreshToken(refreshToken);
 
         checkRefreshToken(storedRefreshToken);
 
-        User user = userRepository.findByAccountId(userDetails.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
+        User user = findByAccountId(userDetails.getId());
+
         log.info("Генерация новых токенов для пользователя с email {}", user.getEmail());
 
         // Генерируем новые токены
@@ -118,12 +119,29 @@ public class RefreshTokenService {
         if (currentPrincipal instanceof AppUserDetails userDetails) {
             UUID accountId = userDetails.getId();
 
-            User user = userRepository.findByAccountId(accountId)
-                    .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
+            User user = findByAccountId(accountId);
             log.info("Пользователь с email {} выходит из системы", user.getEmail());
 
             deleteByAccountId(accountId);
         }
         return "Успешный выход из аккаунта";
+    }
+
+    private String getEmailFromRefreshToken(String token){
+        Claims claims = Jwts.parser()
+                .setSigningKey(jwtSecret)
+                .parseClaimsJws(token)
+                .getBody();
+
+        UUID accountId = UUID.fromString(claims.get("accountId", String.class));
+
+        User user = findByAccountId(accountId);
+
+        return user.getEmail();
+    }
+
+    private User findByAccountId (UUID accountId){
+        return userRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не зарегистрирован!"));
     }
 }

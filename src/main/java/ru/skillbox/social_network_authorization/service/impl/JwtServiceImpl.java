@@ -31,7 +31,7 @@ public class JwtServiceImpl implements JwtService {
                 .signWith(SignatureAlgorithm.HS256, jwtSecret)
                 .compact();
 
-        log.info("jwt: " + jwt);
+        log.info("Создан jwt для пользователя {}", userDetails.getEmail());
         return jwt;
     }
 
@@ -41,22 +41,27 @@ public class JwtServiceImpl implements JwtService {
     }
 
     public boolean validate(String authToken) {
+        String email = getUsername(authToken);
+
+        log.info("Запущен метод validate для пользователя {}", email);
         boolean result = true;
         try {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
         } catch (SignatureException e) {
-            log.error("Недопустимая подпись: " + e.getMessage());
+            log.error("Недопустимая подпись: {}", e.getMessage());
             result = false;
         } catch (MalformedJwtException e) {
-            log.error("Недопустимый токен: " + e.getMessage());
+            log.error("Недопустимый токен: {}", e.getMessage());
             result = false;
         } catch (UnsupportedJwtException e) {
-            log.error("Токен не поддерживается: " + e.getMessage());
+            log.error("Токен не поддерживается: {}", e.getMessage());
             result = false;
         } catch (ExpiredJwtException e) {
             log.error("Токен просрочен");
             result = false;
         }
+
+        log.info("Валидация прошла успешно!");
         return result;
     }
 }

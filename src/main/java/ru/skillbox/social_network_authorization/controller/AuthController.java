@@ -45,7 +45,6 @@ public class AuthController {
 
     @GetMapping("/validate")
     public Boolean validateToken(@RequestParam String token) {
-        log.info("Запущен метод validateToken");
 
         return jwtService.validate(token);
     }

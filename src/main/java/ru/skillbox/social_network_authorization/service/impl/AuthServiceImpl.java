@@ -78,15 +78,15 @@ public class AuthServiceImpl implements AuthService {
         AppUserDetails currentUserDetails = (AppUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         String jwt = jwtServiceImpl.generateJwtToken(currentUserDetails);
-        log.info("Сгенерирован jwt: " + jwt);
+        log.info("Сгенерирован jwt: {}", jwt);
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(currentUserDetails.getId());
-        log.info("Сгенерирован refreshToken: " + refreshToken);
+        log.info("Сгенерирован refreshToken: {}", refreshToken);
 
         return new TokenResponse(jwt, refreshToken.getToken());
     }
 
-    private User validatePassword(AuthenticateRq request){
+    private User validatePassword(AuthenticateRq request) {
         User user = findUserByEmail(request.getEmail());
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
