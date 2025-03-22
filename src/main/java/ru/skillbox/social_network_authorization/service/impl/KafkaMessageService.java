@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import ru.skillbox.social_network_authorization.dto.kafka.RegistrationEventDto;
+import ru.skillbox.social_network_authorization.dto.kafka.UserOnlineEventDto;
 import ru.skillbox.social_network_authorization.entity.User;
 import ru.skillbox.social_network_authorization.repository.UserRepository;
 import ru.skillbox.social_network_authorization.dto.kafka.CreatedAccountEventDto;
@@ -17,13 +18,20 @@ import ru.skillbox.social_network_authorization.dto.kafka.CreatedAccountEventDto
 public class KafkaMessageService {
 
     private final UserRepository userRepository;
-    private final KafkaTemplate<String, RegistrationEventDto> kafkaTemplate;
-    @Value("${app.kafka.topicProducer}")
-    private String producerTopicName;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+    @Value("${app.kafka.topicProducerRegistration}")
+    private String registrationTopic;
+    @Value("${app.kafka.topicProducerUserIsOnline}")
+    private String userOnlineTopic;
 
     public void sendMessageWithUserData(RegistrationEventDto registrationEventDto) {
-        log.info("registrationEventDto: " + registrationEventDto);
-        kafkaTemplate.send(producerTopicName, registrationEventDto);
+        log.info("registrationEventDto: {}", registrationEventDto);
+        kafkaTemplate.send(registrationTopic, registrationEventDto);
+    }
+
+    public void sendMessageWhenUserOnline(UserOnlineEventDto userOnlineEventDto) {
+        log.info("Пользователь с accountId {} онлайн", userOnlineEventDto.getAccountId());
+        kafkaTemplate.send(userOnlineTopic, userOnlineEventDto);
     }
 
     public void setAccountId(CreatedAccountEventDto createdAccountEventDto) {

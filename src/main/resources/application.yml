@@ -29,9 +29,10 @@ spring:
 
 app:
   kafka:
-    topicProducer: "registration-topic"
+    topicProducerRegistration: "registration-topic"
+    topicProducerUserIsOnline: "user-is-online-topic"
+    topicListenerCreatedAccount: "created-account-topic"
 
-    topicListener: "created-account-topic"
     kafkaMessageGroupId: "kafka-account-group-id"
   jwt:
     secret: "someSecretKey"

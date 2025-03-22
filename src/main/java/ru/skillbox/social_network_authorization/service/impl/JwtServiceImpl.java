@@ -1,17 +1,21 @@
 package ru.skillbox.social_network_authorization.service.impl;
 
 import io.jsonwebtoken.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import ru.skillbox.social_network_authorization.dto.kafka.UserOnlineEventDto;
 import ru.skillbox.social_network_authorization.security.AppUserDetails;
 import ru.skillbox.social_network_authorization.service.JwtService;
 
 import java.time.Duration;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class JwtServiceImpl implements JwtService {
 
     @Value("${app.jwt.secret}")
@@ -19,6 +23,8 @@ public class JwtServiceImpl implements JwtService {
 
     @Value("${app.jwt.tokenExpiration}")
     private Duration tokenExpiration;
+
+    private final KafkaMessageService kafkaMessageService;
 
     public String generateJwtToken(AppUserDetails userDetails) {
         String jwt = Jwts.builder()
@@ -61,7 +67,11 @@ public class JwtServiceImpl implements JwtService {
             result = false;
         }
 
-        log.info("Валидация прошла успешно!");
+        UUID accountId = (UUID) Jwts.parser().setSigningKey(jwtSecret)
+                .parseClaimsJws(authToken).getBody().get("accountId");
+        kafkaMessageService.sendMessageWhenUserOnline(
+                new UserOnlineEventDto(accountId));
+
         return result;
     }
 }

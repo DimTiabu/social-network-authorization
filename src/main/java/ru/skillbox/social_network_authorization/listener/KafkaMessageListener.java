@@ -17,7 +17,7 @@ public class KafkaMessageListener {
     private final KafkaMessageService kafkaMessageService;
     private final CreationEventMapper creationEventMapper;
 
-    @KafkaListener(topics = "${app.kafka.topicListener}",
+    @KafkaListener(topics = "${app.kafka.topicListenerCreatedAccount}",
             groupId = "${app.kafka.kafkaMessageGroupId}",
             containerFactory = "kafkaListenerContainerFactory")
     public void listen(@Payload String creation) {
