@@ -11,7 +11,6 @@ import ru.skillbox.social_network_authorization.service.JwtService;
 
 import java.time.Duration;
 import java.util.Date;
-import java.util.UUID;
 
 @Component
 @Slf4j
@@ -67,7 +66,7 @@ public class JwtServiceImpl implements JwtService {
             result = false;
         }
 
-        UUID accountId = (UUID) Jwts.parser().setSigningKey(jwtSecret)
+        String accountId = (String) Jwts.parser().setSigningKey(jwtSecret)
                 .parseClaimsJws(authToken).getBody().get("accountId");
         kafkaMessageService.sendMessageWhenUserOnline(
                 new UserOnlineEventDto(accountId));
