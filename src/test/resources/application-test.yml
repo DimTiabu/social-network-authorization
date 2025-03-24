@@ -1,0 +1,44 @@
+#spring:
+#  application:
+#    name: auth-service
+#
+#  profiles:
+#    active: test
+#
+#  datasource:
+#      url: jdbc:postgresql://${TESTCONTAINERS_POSTGRES_HOST}:${TESTCONTAINERS_POSTGRES_PORT}/test_db
+#      username: test_user
+#      password: test_password
+#
+#  kafka:
+#    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+#
+#  data:
+#    redis:
+#      port: 6379
+#
+#  main:
+#    allow-circular-references: true
+#  jpa:
+#    generate-ddl: true
+#    open-in-view: true
+#
+#app:
+#  kafka:
+#    topicProducerRegistration: "registration-topic"
+#    topicProducerUserIsOnline: "user-is-online-topic"
+#    topicProducerChangedEmail: "changed-email-topic"
+#    topicListenerCreatedAccount: "created-account-topic"
+#
+#    kafkaMessageGroupId: "kafka-account-group-id"
+#  jwt:
+#    secret: "someSecretKey"
+#    tokenExpiration: 15m
+#    refreshTokenExpiration: 24h
+#  mail:
+#    user: ${MAIL_USER:tdsuser45@mail.ru}
+#    password: ${MAIL_PASSWORD:n3c421ZcGyinuqdKJyie}
+#
+#eureka:
+#  client:
+#    enabled: false

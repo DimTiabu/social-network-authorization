@@ -1,94 +1,85 @@
-//package ru.skillbox.social_network_authorization.controller;
-//
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import jakarta.servlet.http.HttpSession;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//import org.springframework.context.annotation.Profile;
-//import org.springframework.http.MediaType;
-//import org.springframework.test.web.servlet.MockMvc;
-//import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-//import ru.skillbox.social_network_authorization.dto.RegistrationDto;
-//import ru.skillbox.social_network_authorization.entity.User;
-//import ru.skillbox.social_network_authorization.service.RegistrationService;
-//import ru.skillbox.social_network_authorization.service.impl.KafkaMessageService;
-//
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.Mockito.when;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-//
-//@ExtendWith(MockitoExtension.class)
-//@Profile("test")
-//class RegistrationControllerTest {
-//
-//    @Mock
-//    private RegistrationService registrationService;
-//
-//    @Mock
-//    private KafkaMessageService kafkaMessageService;
-//
-//    @Mock
-//    private HttpSession session;
-//
-//    @InjectMocks
-//    private RegistrationController registrationController;
-//
-//    private MockMvc mockMvc;
-//
-//    @Test
-//    void testSuccessfulRegistration() throws Exception {
-//        mockMvc = MockMvcBuilders.standaloneSetup(registrationController).build();
-//
-//        RegistrationDto registrationDto = RegistrationDto.builder()
-//                .email("test@example.com")
-//                .password1("password123")
-//                .password2("password123")
-//                .firstName("John")
-//                .lastName("Doe")
-//                .captchaCode("captchaCode")
-//                .build();
-//
-//        when(session.getAttribute("captchaSecret")).thenReturn("captchaCode");
-//        when(registrationService.registerUser(any())).thenReturn(User.builder().build());
-//
-//        mockMvc.perform(post("/api/v1/auth/register")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .sessionAttr("captchaSecret", "captchaCode")
-//                        .content(asJsonString(registrationDto)))
-//                .andExpect(status().isOk());
-//    }
-//
-//    @Test
-//    void testInvalidCaptcha() throws Exception {
-//        mockMvc = MockMvcBuilders.standaloneSetup(registrationController).build();
-//
-//        RegistrationDto registrationDto = RegistrationDto.builder()
-//                .email("test@example.com")
-//                .password1("password123")
-//                .password2("password123")
-//                .firstName("John")
-//                .lastName("Doe")
-//                .captchaCode("invalidCaptcha")
-//                .build();
-//
-//        when(session.getAttribute("captchaSecret")).thenReturn("captchaCode");
-//
-//        mockMvc.perform(post("/api/v1/auth/register")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .sessionAttr("captchaSecret", "captchaCode")
-//                        .content(asJsonString(registrationDto)))
-//                .andExpect(status().is5xxServerError());
-//    }
-//
-//    private static String asJsonString(final Object obj) {
-//        try {
-//            return new ObjectMapper().writeValueAsString(obj);
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-//}
+package ru.skillbox.social_network_authorization.controller;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import ru.skillbox.social_network_authorization.configuration.TestSecurityConfiguration;
+import ru.skillbox.social_network_authorization.dto.RegistrationDto;
+import ru.skillbox.social_network_authorization.dto.kafka.RegistrationEventDto;
+import ru.skillbox.social_network_authorization.entity.User;
+import ru.skillbox.social_network_authorization.service.RegistrationService;
+import ru.skillbox.social_network_authorization.service.impl.KafkaMessageService;
+
+import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(SpringExtension.class)
+@WebMvcTest(RegistrationController.class)
+@AutoConfigureMockMvc
+@Import(TestSecurityConfiguration.class)
+class RegistrationControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private RegistrationService registrationService;
+
+    @MockBean
+    private KafkaMessageService kafkaMessageService;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Test
+    void register_Success() throws Exception {
+        RegistrationDto registrationDto = new RegistrationDto(
+                "test@example.com", "password", "password", "John", "Doe", "1234"
+        );
+        User user = User.builder().id(UUID.randomUUID()).email("test@example.com").build();
+
+        when(registrationService.registerUser(any(User.class))).thenReturn(user);
+        doNothing().when(kafkaMessageService).sendMessageWithUserData(any(RegistrationEventDto.class));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registrationDto))
+                        .sessionAttr("captchaSecret", "1234"))  // Устанавливаем атрибут сессии
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("Успешная регистрация"));
+
+        verify(registrationService).registerUser(any(User.class));
+        verify(kafkaMessageService).sendMessageWithUserData(any(RegistrationEventDto.class));
+    }
+
+    @Test
+    void register_InvalidCaptcha_ThrowsException() throws Exception {
+        RegistrationDto registrationDto = RegistrationDto.builder()
+                .email("test@example.com")
+                .password1("password")
+                .password2("password")
+                .firstName("John")
+                .lastName("Doe")
+                .captchaCode("wrongCaptcha")
+                .build();
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registrationDto))
+                        .sessionAttr("captchaSecret", "1234"))  // Устанавливаем правильную капчу, но в запросе неверная
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+        verify(registrationService, never()).registerUser(any(User.class));
+        verify(kafkaMessageService, never()).sendMessageWithUserData(any(RegistrationEventDto.class));
+    }
+}
