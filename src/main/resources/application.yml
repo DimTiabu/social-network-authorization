@@ -31,6 +31,7 @@ app:
   kafka:
     topicProducerRegistration: "registration-topic"
     topicProducerUserIsOnline: "user-is-online-topic"
+    topicProducerChangedEmail: "changed-email-topic"
     topicListenerCreatedAccount: "created-account-topic"
 
     kafkaMessageGroupId: "kafka-account-group-id"

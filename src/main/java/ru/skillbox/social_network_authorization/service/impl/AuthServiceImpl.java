@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import ru.skillbox.social_network_authorization.dto.*;
+import ru.skillbox.social_network_authorization.dto.kafka.EmailChangedEventDto;
 import ru.skillbox.social_network_authorization.entity.RefreshToken;
 import ru.skillbox.social_network_authorization.entity.User;
 import ru.skillbox.social_network_authorization.exception.InvalidPasswordException;
@@ -41,6 +42,7 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenService refreshTokenService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final KafkaMessageService kafkaMessageService;
 
     @Value("${app.mail.user}")
     private String mailUsername;
@@ -211,6 +213,9 @@ public class AuthServiceImpl implements AuthService {
         User user = findUserByEmail(currentEmail);
         user.setEmail(email);
         userRepository.save(user);
+        kafkaMessageService.sendMessageWhenEmailIsChange(
+                new EmailChangedEventDto(user.getAccountId(), email)
+        );
         return "Электронная почта успешно изменена";
     }
 

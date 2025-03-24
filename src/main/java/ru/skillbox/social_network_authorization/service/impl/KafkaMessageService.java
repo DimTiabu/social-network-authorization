@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import ru.skillbox.social_network_authorization.dto.kafka.EmailChangedEventDto;
 import ru.skillbox.social_network_authorization.dto.kafka.RegistrationEventDto;
 import ru.skillbox.social_network_authorization.dto.kafka.UserOnlineEventDto;
 import ru.skillbox.social_network_authorization.entity.User;
@@ -23,6 +24,8 @@ public class KafkaMessageService {
     private String registrationTopic;
     @Value("${app.kafka.topicProducerUserIsOnline}")
     private String userOnlineTopic;
+    @Value("${app.kafka.topicProducerChangedEmail}")
+    private String changedEmailTopic;
 
     public void sendMessageWithUserData(RegistrationEventDto registrationEventDto) {
         log.info("registrationEventDto: {}", registrationEventDto);
@@ -32,6 +35,12 @@ public class KafkaMessageService {
     public void sendMessageWhenUserOnline(UserOnlineEventDto userOnlineEventDto) {
         log.info("Пользователь с accountId {} онлайн", userOnlineEventDto.getAccountId());
         kafkaTemplate.send(userOnlineTopic, userOnlineEventDto);
+    }
+
+    public void sendMessageWhenEmailIsChange(EmailChangedEventDto emailChangedEventDto) {
+        log.info("Пользователь с accountId {} поменял email на {}",
+                emailChangedEventDto.getAccountId(), emailChangedEventDto.getEmail());
+        kafkaTemplate.send(changedEmailTopic, emailChangedEventDto);
     }
 
     public void setAccountId(CreatedAccountEventDto createdAccountEventDto) {
