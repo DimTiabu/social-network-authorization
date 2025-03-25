@@ -6,37 +6,46 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import ru.skillbox.social_network_authorization.entity.User;
 
+import java.io.Serial;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @RequiredArgsConstructor
 public class AppUserDetails implements UserDetails {
+    @Serial
+    private static final long serialVersionUID = 123984723894732894L;
 
-    private final User user;
+    private final UUID accountId;
+    private final String email;
+    private final String password;
+    private final List<SimpleGrantedAuthority> authorities;
 
-    public UUID getId(){
-        return user.getAccountId();
+    public AppUserDetails(User user) {
+        this.accountId = user.getAccountId();
+        this.email = user.getEmail();
+        this.password = user.getPassword();
+        this.authorities = user.getRoles().stream()
+                .map(r -> new SimpleGrantedAuthority(r.name()))
+                .toList();
     }
-
-    public String getEmail(){
-        return user.getEmail();
+    public UUID getId(){
+        return accountId;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return user.getRoles().stream()
-                .map(r -> new SimpleGrantedAuthority(r.name()))
-                .toList();
+        return authorities;
     }
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return password;
     }
 
     @Override
     public String getUsername() {
-        return user.getEmail();
+        return email;
     }
 
     @Override

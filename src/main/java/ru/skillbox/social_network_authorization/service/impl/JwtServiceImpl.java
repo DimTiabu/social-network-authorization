@@ -36,7 +36,7 @@ public class JwtServiceImpl implements JwtService {
                 .signWith(SignatureAlgorithm.HS256, jwtSecret)
                 .compact();
 
-        log.info("Создан jwt для пользователя {}", userDetails.getEmail());
+        log.info("Создан jwt для пользователя {}", userDetails.getUsername());
         return jwt;
     }
 
