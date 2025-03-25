@@ -106,34 +106,6 @@ public class AuthServiceImpl implements AuthService {
         return user;
     }
 
-//    public TokenResponse authenticate(AuthenticateRq request) {
-//        User user = findUserByEmail(request.getEmail());
-//        log.info("request.getPassword() - {}", request.getPassword());
-//        log.info("encoded request.getPassword() - {}", passwordEncoder.encode(request.getPassword()));
-//        log.info("user.getPassword() - {}", user.getPassword());
-//        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-//            throw new InvalidPasswordException();
-//        }
-//
-//        Authentication authentication = authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(
-//                        request.getEmail(),
-//                        request.getPassword()
-//                ));
-//
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
-//
-//        AppUserDetails userDetails = (AppUserDetails) authentication.getPrincipal();
-//
-//        String jwt = jwtServiceImpl.generateJwtToken(userDetails);
-//        log.info("Сгенерирован jwt: {}", jwt);
-//
-//        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId());
-//        log.info("Сгенерирован refreshToken: {}", refreshToken);
-//
-//        return new TokenResponse(jwt, refreshToken.getToken());
-//    }
-
     @Transactional
     public String sendRecoveryEmail(RecoveryPasswordLinkRq request) {
 

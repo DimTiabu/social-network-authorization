@@ -21,7 +21,7 @@ public class CaptchaController {
     public CaptchaDto generateCaptcha(HttpSession session) {
         CaptchaDto captchaDto = captchaServiceImpl.generateCaptcha();
         // Сохраняем сгенерированный токен в сессии
-        log.info("captchaDto.getSecret = " + captchaDto.getSecret());
+        log.info("captchaDto.getSecret = {}", captchaDto.getSecret());
         session.setAttribute("captchaSecret", captchaDto.getSecret());
         return captchaDto;
     }

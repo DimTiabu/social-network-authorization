@@ -9,6 +9,7 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.core.convert.KeyspaceConfiguration;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
+import org.springframework.lang.NonNull;
 import ru.skillbox.social_network_authorization.entity.RefreshToken;
 
 import java.time.Duration;
@@ -43,6 +44,7 @@ public class RedisConfiguration {
                 "refresh_tokens";
 
         @Override
+        @NonNull
         protected Iterable<KeyspaceSettings> initialConfiguration() {
             KeyspaceSettings keyspaceSettings =
                     new KeyspaceSettings(

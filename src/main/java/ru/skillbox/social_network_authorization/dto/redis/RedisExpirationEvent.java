@@ -5,6 +5,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisKeyExpiredEvent;
 import org.springframework.stereotype.Component;
 import ru.skillbox.social_network_authorization.entity.RefreshToken;
+import ru.skillbox.social_network_authorization.exception.RefreshTokenException;
 
 @Component
 @Slf4j
@@ -17,12 +18,12 @@ public class RedisExpirationEvent {
         RefreshToken expiredRefreshToken = (RefreshToken) event.getValue();
 
         if (expiredRefreshToken == null){
-            throw new RuntimeException(
-                    "Refresh token is null in handleRedisKeyExpiredEvent");
+            throw new RefreshTokenException(
+                    "Refresh token отсутствует в Redis");
         }
 
         log.info(
-                "Refresh token with key {} has expired! Refresh token is: {}",
+                "Refresh token с ключом {} истек! Токен: {}",
                 expiredRefreshToken.getId(),
                 expiredRefreshToken.getToken());
     }

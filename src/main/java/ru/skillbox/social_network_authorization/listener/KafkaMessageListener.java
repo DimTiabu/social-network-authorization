@@ -22,11 +22,10 @@ public class KafkaMessageListener {
             containerFactory = "kafkaListenerContainerFactory")
     public void listen(@Payload String creation) {
 
-        log.info("creation: " + creation);
+        log.info("creation: {}", creation);
         CreatedAccountEventDto createdAccountEventDto = creationEventMapper.mapFromJson(creation);
 
-        log.info("Создан аккаунт с userId " + createdAccountEventDto.getUserId() +
-                "и accountId " + createdAccountEventDto.getAccountId());
+        log.info("Создан аккаунт с userId {}и accountId {}", createdAccountEventDto.getUserId(), createdAccountEventDto.getAccountId());
         kafkaMessageService.setAccountId(createdAccountEventDto);
     }
 }

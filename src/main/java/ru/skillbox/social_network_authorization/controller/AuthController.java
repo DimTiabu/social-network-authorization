@@ -110,7 +110,7 @@ public class AuthController {
             log.info("HeaderAuth: {}", headerAuth);
             return headerAuth.substring(7);
         } else {
-            throw new JwtAuthenticationException("JWT token is missing or invalid");
+            throw new JwtAuthenticationException("JWT-токен отсутствует или недействителен");
         }
     }
 
