@@ -24,6 +24,7 @@ import ru.skillbox.social_network_authorization.repository.UserRepository;
 import ru.skillbox.social_network_authorization.security.AppUserDetails;
 import ru.skillbox.social_network_authorization.service.impl.AuthServiceImpl;
 import ru.skillbox.social_network_authorization.service.impl.JwtServiceImpl;
+import ru.skillbox.social_network_authorization.service.impl.KafkaMessageService;
 import ru.skillbox.social_network_authorization.service.impl.RefreshTokenService;
 
 import java.time.Instant;
@@ -53,6 +54,9 @@ class AuthServiceImplTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private KafkaMessageService kafkaMessageService;
 
     private User user;
 
@@ -162,7 +166,13 @@ class AuthServiceImplTest {
         String newEmail = "new@example.com";
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
+        // Мокаем вызов KafkaMessageService, чтобы избежать NPE
+        doNothing().when(kafkaMessageService).sendMessageWhenEmailIsChange(any());
+
         String result = authService.changeEmail(newEmail, user.getEmail());
         assertEquals("Электронная почта успешно изменена", result);
+
+        // Проверяем, что KafkaMessageService действительно вызван
+        verify(kafkaMessageService, times(1)).sendMessageWhenEmailIsChange(any());
     }
 }
