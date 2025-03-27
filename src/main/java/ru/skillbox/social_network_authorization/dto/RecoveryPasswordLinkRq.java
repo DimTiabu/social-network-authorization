@@ -17,4 +17,7 @@ public class RecoveryPasswordLinkRq {
     @Email(message = "Неправильный формат электронной почты")
     private String email;
 
+    public RecoveryPasswordLinkRq(String email) {
+        this.email = email;
+    }
 }
