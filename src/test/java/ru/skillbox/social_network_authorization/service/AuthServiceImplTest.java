@@ -3,9 +3,12 @@ package ru.skillbox.social_network_authorization.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -35,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT) // Игнорирует неиспользуемые моки
 class AuthServiceImplTest {
 
     @InjectMocks
@@ -105,7 +109,7 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void authenticate_Fail_InvalidPassword() {
+    void authenticate_InvalidPassword_ThrowsException() {
         AuthenticateRq request = new AuthenticateRq("test@example.com", "wrong_password");
 
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
@@ -120,6 +124,93 @@ class AuthServiceImplTest {
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> authService.authenticate(request, null));
+    }
+
+    @Test
+    void authenticate_TelegramChatIdNotNull_Success() {
+        // Подготовка данных
+        AuthenticateRq request = new AuthenticateRq("test@example.com", "password");
+        String telegramChatId = "12345"; // Указываем chatId
+        UUID accountId = UUID.randomUUID();
+        user.setAccountId(accountId);
+        user.setChatId(Long.valueOf(telegramChatId));
+
+        AppUserDetails userDetails = new AppUserDetails(user);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        // Мокаем поведение репозитория для поиска по email и chatId
+        when(userRepository.findByEmailAndChatId(anyString(), anyLong())).thenReturn(Optional.of(user));
+        when(authenticationManager.authenticate(any())).thenReturn(authentication);
+        when(jwtService.generateJwtToken(any(AppUserDetails.class))).thenReturn("accessToken123");
+        when(refreshTokenService.createRefreshToken(any(UUID.class))).thenReturn(RefreshToken.builder()
+                .accountId(accountId)
+                .token("refreshToken456")
+                .expiryDate(Instant.now().plusSeconds(3600))
+                .build());
+
+        // Устанавливаем аутентификацию в SecurityContextHolder
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Выполнение
+        TokenResponse response = authService.authenticate(request, telegramChatId);
+
+        // Проверка
+        assertNotNull(response);
+        assertEquals("accessToken123", response.getAccessToken());
+        assertEquals("refreshToken456", response.getRefreshToken());
+
+        // Проверка, что пользователь найден по email и chatId
+        verify(userRepository).findByEmailAndChatId(anyString(), anyLong());
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void authenticate_TelegramChatIdNotNull_UserNotFound() {
+
+        // Подготовка данных
+        AuthenticateRq request = new AuthenticateRq("unknown@example.com", "password");
+        String telegramChatId = "12345"; // Указываем chatId
+        UUID accountId = UUID.randomUUID();
+        user.setAccountId(accountId);
+
+        when(userRepository.findByEmailAndChatId(anyString(), anyLong())).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> authService.authenticate(request, telegramChatId));
+    }
+
+    @Test
+    void authenticate_TelegramChatIdNotNull_CreateChatIdForUser() {
+
+        // Подготовка данных
+        AuthenticateRq request = new AuthenticateRq("unknown@example.com", "password");
+        String telegramChatId = "12345"; // Указываем chatId
+        UUID accountId = UUID.randomUUID();
+        user.setAccountId(accountId);
+
+        AppUserDetails userDetails = new AppUserDetails(user);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        // Мокаем поведение репозитория для поиска по email и chatId
+        when(userRepository.findByEmailAndChatId(anyString(), anyLong())).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+        when(authenticationManager.authenticate(any())).thenReturn(authentication);
+        when(jwtService.generateJwtToken(any(AppUserDetails.class))).thenReturn("accessToken123");
+        when(refreshTokenService.createRefreshToken(any(UUID.class))).thenReturn(RefreshToken.builder()
+                .accountId(accountId)
+                .token("refreshToken456")
+                .expiryDate(Instant.now().plusSeconds(3600))
+                .build());
+
+        // Выполнение
+        authService.authenticate(request, telegramChatId);
+
+
+        // Проверка, что пользователь не был найден по email и chatId, но создан новый
+        verify(userRepository).findByEmailAndChatId(anyString(), anyLong());
+        verify(userRepository).save(any(User.class)); // Проверка, что пользователь сохранен
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -157,8 +248,11 @@ class AuthServiceImplTest {
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(request.getOldPassword(), user.getPassword())).thenReturn(true);
 
-        assertThrows(PasswordsDoNotMatchException.class,
-                () -> authService.changePassword(request, user.getEmail()));
+        // Лямбда, которая вызывает метод changePassword
+        Executable executable = () -> authService.changePassword(request, user.getEmail());
+
+        // Проверяем, что будет выброшено исключение PasswordsDoNotMatchException
+        assertThrows(PasswordsDoNotMatchException.class, executable);
     }
 
     @Test
