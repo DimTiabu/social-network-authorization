@@ -13,12 +13,12 @@ import ru.skillbox.social_network_authorization.dto.*;
 import ru.skillbox.social_network_authorization.dto.kafka.EmailChangedEventDto;
 import ru.skillbox.social_network_authorization.entity.RefreshToken;
 import ru.skillbox.social_network_authorization.entity.User;
+import ru.skillbox.social_network_authorization.exception.EntityNotFoundException;
 import ru.skillbox.social_network_authorization.exception.InvalidPasswordException;
 import ru.skillbox.social_network_authorization.exception.PasswordsDoNotMatchException;
 import ru.skillbox.social_network_authorization.repository.UserRepository;
 import ru.skillbox.social_network_authorization.security.AppUserDetails;
 import ru.skillbox.social_network_authorization.service.AuthService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
