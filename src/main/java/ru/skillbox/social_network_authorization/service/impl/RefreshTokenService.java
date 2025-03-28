@@ -79,14 +79,11 @@ public class RefreshTokenService {
     }
 
     public void checkRefreshToken(RefreshToken token) {
-        try {
-            if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
-                refreshTokenRepository.delete(token);
-                throw new RefreshTokenException(token.getToken(),
-                        "Срок действия refresh-токена истек. Авторизуйтесь повторно!");
-            }
-        } catch (RefreshTokenException e) {
+        if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
+            refreshTokenRepository.delete(token);
             logout();
+            throw new RefreshTokenException(token.getToken(),
+                    "Срок действия refresh-токена истек. Авторизуйтесь повторно!");
         }
     }
 
@@ -115,7 +112,14 @@ public class RefreshTokenService {
 
     public String logout() {
         log.info("Запуск метода logout");
-        var currentPrincipal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal() == null) {
+            log.warn("Попытка logout без аутентифицированного пользователя.");
+            return "Выход невозможен – пользователь не аутентифицирован";
+        }
+
+        var currentPrincipal = authentication.getPrincipal();
         if (currentPrincipal instanceof AppUserDetails userDetails) {
             UUID accountId = userDetails.getId();
 
@@ -127,7 +131,7 @@ public class RefreshTokenService {
         return "Успешный выход из аккаунта";
     }
 
-    private String getEmailFromRefreshToken(String token){
+    private String getEmailFromRefreshToken(String token) {
         Claims claims = Jwts.parser()
                 .setSigningKey(jwtSecret)
                 .parseClaimsJws(token)
@@ -140,7 +144,7 @@ public class RefreshTokenService {
         return user.getEmail();
     }
 
-    private User findByAccountId (UUID accountId){
+    private User findByAccountId(UUID accountId) {
         return userRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new EntityNotFoundException("Пользователь не зарегистрирован!"));
     }
