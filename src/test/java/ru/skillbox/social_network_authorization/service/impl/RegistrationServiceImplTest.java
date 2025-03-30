@@ -1,4 +1,4 @@
-package ru.skillbox.social_network_authorization.service;
+package ru.skillbox.social_network_authorization.service.impl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,7 +10,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.skillbox.social_network_authorization.entity.User;
 import ru.skillbox.social_network_authorization.exception.EntityNotFoundException;
 import ru.skillbox.social_network_authorization.repository.UserRepository;
-import ru.skillbox.social_network_authorization.service.impl.RegistrationServiceImpl;
 
 import java.util.Optional;
 import java.util.UUID;

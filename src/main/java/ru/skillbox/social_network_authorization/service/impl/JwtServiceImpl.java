@@ -46,12 +46,18 @@ public class JwtServiceImpl implements JwtService {
     }
 
     public boolean validate(String authToken) {
-        String email = getUsername(authToken);
-
-        log.info("Запущен метод validate для пользователя {}", email);
         boolean result = true;
+
         try {
+            String email = getUsername(authToken);
+            log.info("Запущен метод validate для пользователя {}", email);
+
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
+            String accountId = (String) Jwts.parser().setSigningKey(jwtSecret)
+                    .parseClaimsJws(authToken).getBody().get("accountId");
+            kafkaMessageService.sendMessageWhenUserOnline(
+                    new UserOnlineEventDto(accountId));
+
         } catch (SignatureException e) {
             log.error("Недопустимая подпись: {}", e.getMessage());
             result = false;
@@ -65,11 +71,6 @@ public class JwtServiceImpl implements JwtService {
             log.error("Токен просрочен");
             result = false;
         }
-
-        String accountId = (String) Jwts.parser().setSigningKey(jwtSecret)
-                .parseClaimsJws(authToken).getBody().get("accountId");
-        kafkaMessageService.sendMessageWhenUserOnline(
-                new UserOnlineEventDto(accountId));
 
         return result;
     }

@@ -1,10 +1,9 @@
-package ru.skillbox.social_network_authorization.service;
+package ru.skillbox.social_network_authorization.service.impl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.skillbox.social_network_authorization.dto.CaptchaDto;
 import ru.skillbox.social_network_authorization.exception.CaptchaException;
-import ru.skillbox.social_network_authorization.service.impl.CaptchaServiceImpl;
 
 import static org.junit.jupiter.api.Assertions.*;
 
