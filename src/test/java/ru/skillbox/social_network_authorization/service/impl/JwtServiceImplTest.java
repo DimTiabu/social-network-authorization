@@ -1,5 +1,6 @@
 package ru.skillbox.social_network_authorization.service.impl;
 
+import io.jsonwebtoken.Jwts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,13 +63,6 @@ class JwtServiceImplTest {
     }
 
     @Test
-    void givenExpiredToken_whenValidate_thenShouldReturnFalse() {
-        ReflectionTestUtils.setField(jwtService, "tokenExpiration", Duration.ofMillis(-1));
-        String token = jwtService.generateJwtToken(userDetails);
-        assertFalse(jwtService.validate(token));
-    }
-
-    @Test
     void givenTokenWithInvalidSignature_whenValidate_thenShouldReturnFalse() {
         String token = jwtService.generateJwtToken(userDetails);
 
@@ -79,5 +73,20 @@ class JwtServiceImplTest {
     @Test
     void givenMalformedToken_whenValidate_thenShouldReturnFalse() {
         assertFalse(jwtService.validate("invalidToken"));
+    }
+
+    @Test
+    void givenUnsupportedJwtToken_whenValidate_thenShouldReturnFalse() {
+        String unsupportedToken = Jwts.builder()
+                .setSubject("user@example.com")
+                .compact(); // Без подписи
+        assertFalse(jwtService.validate(unsupportedToken));
+    }
+
+    @Test
+    void givenExpiredToken_whenValidate_thenShouldReturnFalse() {
+        ReflectionTestUtils.setField(jwtService, "tokenExpiration", Duration.ofMillis(-1));
+        String token = jwtService.generateJwtToken(userDetails);
+        assertFalse(jwtService.validate(token));
     }
 }
