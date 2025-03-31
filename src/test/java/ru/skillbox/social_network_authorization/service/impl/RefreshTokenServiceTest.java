@@ -46,6 +46,9 @@ class RefreshTokenServiceTest {
     @Mock
     private JwtServiceImpl jwtService;
 
+    @Mock
+    private SecurityContext securityContext;
+
     private final Duration refreshTokenExpiration = Duration.ofMinutes(30);
 
     private UUID accountId;
@@ -65,6 +68,8 @@ class RefreshTokenServiceTest {
         user.setEmail("test@example.com");
 
         userDetails = new AppUserDetails(user);
+
+        SecurityContextHolder.setContext(securityContext);
 
         token = Jwts.builder()
                 .claim("accountId", accountId)
@@ -145,7 +150,7 @@ class RefreshTokenServiceTest {
 
     @Test
     void givenExpiredRefreshToken_WhenCheckRefreshToken_ThenThrowException() {
-        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()));
         SecurityContextHolder.setContext(securityContext);
 
@@ -179,7 +184,7 @@ class RefreshTokenServiceTest {
 
     @Test
     void logout_shouldReturnMessage_whenUserNotAuthenticated() {
-        SecurityContext securityContext = mock(SecurityContext.class);
+        securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(null);
         SecurityContextHolder.setContext(securityContext);
 
@@ -193,7 +198,7 @@ class RefreshTokenServiceTest {
         Authentication authentication = mock(Authentication.class);
         when(authentication.getPrincipal()).thenReturn(userDetails);
 
-        SecurityContext securityContext = mock(SecurityContext.class);
+        securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
 
@@ -204,5 +209,4 @@ class RefreshTokenServiceTest {
         assertEquals("Успешный выход из аккаунта", message);
         verify(refreshTokenRepository, times(1)).deleteByAccountId(accountId);
     }
-
 }
