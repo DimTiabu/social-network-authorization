@@ -1,19 +1,21 @@
-package ru.skillbox.social_network_authorization.service;
+package ru.skillbox.social_network_authorization.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 import ru.skillbox.social_network_authorization.dto.AuthenticateRq;
 import ru.skillbox.social_network_authorization.dto.ChangePasswordRq;
 import ru.skillbox.social_network_authorization.dto.RecoveryPasswordLinkRq;
@@ -25,11 +27,10 @@ import ru.skillbox.social_network_authorization.exception.InvalidPasswordExcepti
 import ru.skillbox.social_network_authorization.exception.PasswordsDoNotMatchException;
 import ru.skillbox.social_network_authorization.repository.UserRepository;
 import ru.skillbox.social_network_authorization.security.AppUserDetails;
-import ru.skillbox.social_network_authorization.service.impl.AuthServiceImpl;
-import ru.skillbox.social_network_authorization.service.impl.JwtServiceImpl;
-import ru.skillbox.social_network_authorization.service.impl.KafkaMessageService;
-import ru.skillbox.social_network_authorization.service.impl.RefreshTokenService;
 
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Transport;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,8 +38,8 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@Slf4j
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT) // Игнорирует неиспользуемые моки
 class AuthServiceImplTest {
 
     @InjectMocks
@@ -66,13 +67,16 @@ class AuthServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        ReflectionTestUtils.setField(authService, "mailUsername", "mailUsername");
+        ReflectionTestUtils.setField(authService, "mailPassword", "mailPassword");
+
         user = new User();
         user.setEmail("test@example.com");
         user.setPassword("encodedPassword");
     }
 
     @Test
-    void authenticate_Success() {
+    void givenValidCredentials_whenAuthenticate_thenReturnTokenResponse() {
         // Подготовка данных
         AuthenticateRq request = new AuthenticateRq("test@example.com", "password");
         UUID accountId = UUID.randomUUID();
@@ -109,7 +113,7 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void authenticate_InvalidPassword_ThrowsException() {
+    void givenInvalidPassword_whenAuthenticate_thenThrowInvalidPasswordException() {
         AuthenticateRq request = new AuthenticateRq("test@example.com", "wrong_password");
 
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
@@ -118,7 +122,7 @@ class AuthServiceImplTest {
         assertThrows(InvalidPasswordException.class, () -> authService.authenticate(request, null));
     }
     @Test
-    void authenticate_UserNotFound_ThrowsException() {
+    void givenUnknownUser_whenAuthenticate_thenThrowEntityNotFoundException() {
         AuthenticateRq request = new AuthenticateRq("unknown@example.com", "password");
 
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
@@ -127,7 +131,7 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void authenticate_TelegramChatIdNotNull_Success() {
+    void givenValidCredentialsAndTelegramChatId_whenAuthenticate_thenReturnTokenResponse() {
         // Подготовка данных
         AuthenticateRq request = new AuthenticateRq("test@example.com", "password");
         String telegramChatId = "12345"; // Указываем chatId
@@ -140,7 +144,6 @@ class AuthServiceImplTest {
 
         // Мокаем поведение репозитория для поиска по email и chatId
         when(userRepository.findByEmailAndChatId(anyString(), anyLong())).thenReturn(Optional.of(user));
-        when(authenticationManager.authenticate(any())).thenReturn(authentication);
         when(jwtService.generateJwtToken(any(AppUserDetails.class))).thenReturn("accessToken123");
         when(refreshTokenService.createRefreshToken(any(UUID.class))).thenReturn(RefreshToken.builder()
                 .accountId(accountId)
@@ -165,7 +168,7 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void authenticate_TelegramChatIdNotNull_UserNotFound() {
+    void givenUnknownUserAndTelegramChatId_whenAuthenticate_thenThrowEntityNotFoundException() {
 
         // Подготовка данных
         AuthenticateRq request = new AuthenticateRq("unknown@example.com", "password");
@@ -180,7 +183,7 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void authenticate_TelegramChatIdNotNull_CreateChatIdForUser() {
+    void givenValidUserWithoutChatId_whenAuthenticate_thenCreateChatIdAndAuthenticate() {
 
         // Подготовка данных
         AuthenticateRq request = new AuthenticateRq("unknown@example.com", "password");
@@ -214,15 +217,57 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void sendRecoveryEmail_UserNotFound() {
-        RecoveryPasswordLinkRq request = new RecoveryPasswordLinkRq("notfound@example.com", "tempPass");
+    void givenExistingUser_whenSendRecoveryEmail_thenReturnSuccess(){
+        // Подготовка данных
+        RecoveryPasswordLinkRq request = new RecoveryPasswordLinkRq("test@example.com");
+
+        // Мокаем поведение репозитория для поиска пользователя
+        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedTemporaryPassword");
+
+        // Мокаем Transport.send, чтобы не отправлять реальное письмо
+        // Используем PowerMock для мока статических методов, если это необходимо
+        try (MockedStatic<Transport> mockedTransport = Mockito.mockStatic(Transport.class)) {
+            mockedTransport.when(() -> Transport.send(any(Message.class))).thenAnswer(invocation -> null); // Можно использовать thenAnswer, чтобы "поймать" вызов метода
+
+            // Выполнение метода
+            String result = authService.sendRecoveryEmail(request);
+
+            // Проверка
+            assertEquals("OK", result);
+            verify(userRepository).save(any(User.class)); // Проверка, что пароль был обновлен
+        }
+    }
+
+    @Test
+    void givenUnknownUser_whenSendRecoveryEmail_thenThrowEntityNotFoundException() {
+        RecoveryPasswordLinkRq request = new RecoveryPasswordLinkRq("notfound@example.com");
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
 
         assertThrows(EntityNotFoundException.class, () -> authService.sendRecoveryEmail(request));
     }
 
     @Test
-    void changePassword_Success() {
+    void givenMailError_whenSendRecoveryEmail_thenReturnError() {
+        RecoveryPasswordLinkRq request = new RecoveryPasswordLinkRq("test@example.com");
+
+        // Мокаем поведение репозитория для поиска пользователя
+        when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(user));
+
+        // Мокаем ошибку при отправке письма
+        try (MockedStatic<Transport> mockedTransport = Mockito.mockStatic(Transport.class)) {
+            mockedTransport.when(() -> Transport.send(any(Message.class))).thenThrow(new MessagingException("Sending email failed"));
+
+            // Выполнение метода
+            String result = authService.sendRecoveryEmail(request);
+
+            // Проверка, что возвращается ошибка
+            assertEquals("ERROR", result);
+        }
+    }
+
+    @Test
+    void givenValidOldPassword_whenChangePassword_thenReturnSuccessMessage() {
         ChangePasswordRq request = new ChangePasswordRq("newPass", "newPass", "oldPass");
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(request.getOldPassword(), user.getPassword())).thenReturn(true);
@@ -233,7 +278,7 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void changePassword_InvalidOldPassword() {
+    void givenInvalidOldPassword_whenChangePassword_thenReturnErrorMessage() {
         ChangePasswordRq request = new ChangePasswordRq("wrongPass", "newPass", "newPass");
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(request.getOldPassword(), user.getPassword())).thenReturn(false);
@@ -243,7 +288,7 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void changePassword_PasswordsDoNotMatch() {
+    void givenMismatchedNewPasswords_whenChangePassword_thenThrowPasswordsDoNotMatchException() {
         ChangePasswordRq request = new ChangePasswordRq("oldPass", "newPass", "newPass");
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(request.getOldPassword(), user.getPassword())).thenReturn(true);
@@ -256,7 +301,7 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void changeEmail_Success() {
+    void givenValidNewEmail_whenChangeEmail_thenReturnSuccessMessageAndSendKafkaMessage() {
         String newEmail = "new@example.com";
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 
