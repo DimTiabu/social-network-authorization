@@ -3,7 +3,6 @@ package ru.skillbox.social_network_authorization.service.impl;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +11,7 @@ import org.springframework.stereotype.Service;
 import ru.skillbox.social_network_authorization.dto.TokenResponse;
 import ru.skillbox.social_network_authorization.entity.RefreshToken;
 import ru.skillbox.social_network_authorization.entity.User;
+import ru.skillbox.social_network_authorization.exception.EntityNotFoundException;
 import ru.skillbox.social_network_authorization.exception.RefreshTokenException;
 import ru.skillbox.social_network_authorization.repository.RefreshTokenRepository;
 import ru.skillbox.social_network_authorization.repository.UserRepository;
@@ -41,8 +41,8 @@ public class RefreshTokenService {
     public RefreshToken findByRefreshToken(String refreshToken) {
         return refreshTokenRepository.findByToken(refreshToken)
                 .orElseThrow(() -> new RefreshTokenException(refreshToken,
-                        "Недействительный refresh-токен для пользователя " +
-                                getEmailFromRefreshToken(refreshToken) + "!"));
+                        "Недействительный refresh-токен для пользователя с accountId " +
+                                getAccountIdFromRefreshToken(refreshToken) + "!"));
     }
 
     public AppUserDetails getUserByRefreshToken(String refreshToken) {
@@ -54,7 +54,7 @@ public class RefreshTokenService {
             log.info("Пользователь с email {} использует refresh-токен", user.getEmail());
 
             return new AppUserDetails(user);
-        } catch (RefreshTokenException e) {
+        } catch (RefreshTokenException | EntityNotFoundException e) {
             logout();
             throw e;
         }
@@ -127,21 +127,19 @@ public class RefreshTokenService {
             log.info("Пользователь с email {} выходит из системы", user.getEmail());
 
             deleteByAccountId(accountId);
+            SecurityContextHolder.getContext().setAuthentication(null); // 🔹 Явно сбрасываем аутентификацию
         }
         return "Успешный выход из аккаунта";
     }
 
-    private String getEmailFromRefreshToken(String token) {
+    private String getAccountIdFromRefreshToken(String token) {
         Claims claims = Jwts.parser()
                 .setSigningKey(jwtSecret)
                 .parseClaimsJws(token)
                 .getBody();
 
-        UUID accountId = UUID.fromString(claims.get("accountId", String.class));
+        return claims.get("accountId", String.class);
 
-        User user = findByAccountId(accountId);
-
-        return user.getEmail();
     }
 
     private User findByAccountId(UUID accountId) {
