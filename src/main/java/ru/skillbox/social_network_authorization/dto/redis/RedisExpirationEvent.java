@@ -26,7 +26,7 @@ public class RedisExpirationEvent {
             log.info("Refresh token с ключом {} истек! Токен: {}", expiredRefreshToken.getId(), expiredRefreshToken.getToken());
 
         } catch (RefreshTokenException e) {
-            log.error("Ошибка обработки события истечения RefreshToken: {}", e.getMessage());
+            log.info("Ошибка обработки события истечения RefreshToken: {}", e.getMessage());
         }
     }
 }
