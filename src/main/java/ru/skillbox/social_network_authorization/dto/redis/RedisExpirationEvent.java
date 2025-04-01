@@ -13,18 +13,20 @@ public class RedisExpirationEvent {
 
     @EventListener
     public void handleRedisKeyExpiredEvent(
-            RedisKeyExpiredEvent<RefreshToken> event){
+            RedisKeyExpiredEvent<RefreshToken> event) {
 
-        RefreshToken expiredRefreshToken = (RefreshToken) event.getValue();
+        try {
+            RefreshToken expiredRefreshToken = (RefreshToken) event.getValue();
 
-        if (expiredRefreshToken == null){
-            throw new RefreshTokenException(
-                    "Refresh token отсутствует в Redis");
+            if (expiredRefreshToken == null) {
+                throw new RefreshTokenException(
+                        "Refresh token отсутствует в Redis");
+            }
+
+            log.info("Refresh token с ключом {} истек! Токен: {}", expiredRefreshToken.getId(), expiredRefreshToken.getToken());
+
+        } catch (RefreshTokenException e) {
+            log.error("Ошибка обработки события истечения RefreshToken: {}", e.getMessage());
         }
-
-        log.info(
-                "Refresh token с ключом {} истек! Токен: {}",
-                expiredRefreshToken.getId(),
-                expiredRefreshToken.getToken());
     }
 }
