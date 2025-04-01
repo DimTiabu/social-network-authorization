@@ -18,72 +18,75 @@ public class ExceptionHandlerController {
             EntityNotFoundException ex) {
         log.error("Ошибка при попытке получить сущность", ex);
         return new ErrorResponse(
-                        HttpStatus.NOT_FOUND.value(),
-                        ex.getMessage());
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage());
     }
 
     @ExceptionHandler(PasswordsDoNotMatchException.class)
     public ErrorResponse passwordsDoNotMatch(PasswordsDoNotMatchException ex) {
         log.error(ex.getMessage());
         return new ErrorResponse(
-                        HttpStatus.BAD_REQUEST.value(),
-                        ex.getMessage());
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage());
     }
 
     @ExceptionHandler(InvalidPasswordException.class)
-    public ErrorResponse passwordsDoNotMatch(InvalidPasswordException ex) {
+    public ErrorResponse invalidPassword(InvalidPasswordException ex) {
         log.error(ex.getMessage());
         return new ErrorResponse(
-                        HttpStatus.BAD_REQUEST.value(),
-                        ex.getMessage());
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage());
     }
 
     @ExceptionHandler(RefreshTokenException.class)
-    public ErrorResponse passwordsDoNotMatch(RefreshTokenException ex) {
+    public ErrorResponse invalidRefreshToken(RefreshTokenException ex) {
         log.error(ex.getMessage());
         return new ErrorResponse(
-                        HttpStatus.BAD_REQUEST.value(),
-                        ex.getMessage());
-    }
-
-    @ExceptionHandler(AlreadyExistsException.class)
-    public ErrorResponse passwordsDoNotMatch(AlreadyExistsException ex) {
-        log.error(ex.getMessage());
-        return new ErrorResponse(
-                        HttpStatus.BAD_REQUEST.value(),
-                        ex.getMessage());
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage());
     }
 
     @ExceptionHandler(CaptchaException.class)
     public ErrorResponse invalidCaptcha(CaptchaException ex) {
         log.error(ex.getMessage());
         return new ErrorResponse(
-                        HttpStatus.BAD_REQUEST.value(),
-                        ex.getMessage());
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage());
     }
 
     @ExceptionHandler(SecurityException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     public ErrorResponse noAccess(
             SecurityException ex) {
         log.error("Ошибка! Недостаточно прав!", ex);
         return new ErrorResponse(
-                        HttpStatus.FORBIDDEN.value(),
-                        ex.getMessage());
+                HttpStatus.FORBIDDEN.value(),
+                ex.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ErrorResponse illegalArgument(IllegalArgumentException ex) {
         log.error(ex.getMessage());
         return new ErrorResponse(
-                        HttpStatus.BAD_REQUEST.value(),
-                        ex.getMessage());
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage());
+    }
+
+    @ExceptionHandler(JwtAuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleJwtAuthenticationException(JwtAuthenticationException ex) {
+        return new ErrorResponse(
+                HttpStatus.UNAUTHORIZED.value(),
+                ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse anyException(Exception ex) {
         log.error(ex.getMessage());
         return new ErrorResponse(
-                        HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                        ex.getMessage());
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                ex.getMessage());
     }
+
 }

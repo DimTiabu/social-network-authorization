@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.skillbox.social_network_authorization.configuration.TestSecurityConfiguration;
@@ -118,5 +119,65 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/v1/auth/logout"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Успешный выход из аккаунта"));
+    }
+
+    @Test
+    void givenValidEmail_whenRequestChangeEmail_thenReturnSuccessMessage() throws Exception {
+        Map<String, Map<String, String>> payload = Map.of("email", Map.of("email", "newemail@example.com"));
+        String token = "valid-jwt-token";
+
+        when(jwtService.getUsername(token)).thenReturn("test@example.com");
+        when(authService.changeEmail("newemail@example.com", "test@example.com")).thenReturn("Ссылка для смены email отправлена");
+
+        mockMvc.perform(post("/api/v1/auth/change-email-link")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payload)))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Ссылка для смены email отправлена"));
+    }
+
+    @Test
+    void givenValidPasswordChangeRequest_whenRequestChangePassword_thenReturnSuccessMessage() throws Exception {
+        Map<String, String> payload = Map.of(
+                "oldPassword", "oldPassword123",
+                "newPassword1", "newPassword123",
+                "newPassword2", "newPassword123"
+        );
+        String token = "valid-jwt-token";
+
+        when(jwtService.getUsername(token)).thenReturn("test@example.com");
+        when(authService.changePassword(Mockito.any(), Mockito.any())).thenReturn("Пароль успешно изменён");
+
+        mockMvc.perform(post("/api/v1/auth/change-password-link")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payload)))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Пароль успешно изменён"));
+    }
+
+    @Test
+    void givenNoToken_whenRequestChangeEmail_thenReturnUnauthorized() throws Exception {
+        Map<String, Map<String, String>> payload = Map.of("email", Map.of("email", "newemail@example.com"));
+
+        mockMvc.perform(post("/api/v1/auth/change-email-link")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payload)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void givenNoToken_whenRequestChangePassword_thenReturnUnauthorized() throws Exception {
+        Map<String, String> payload = Map.of(
+                "oldPassword", "oldPassword123",
+                "newPassword1", "newPassword123",
+                "newPassword2", "newPassword123"
+        );
+
+        mockMvc.perform(post("/api/v1/auth/change-password-link")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(payload)))
+                .andExpect(status().isUnauthorized());
     }
 }
