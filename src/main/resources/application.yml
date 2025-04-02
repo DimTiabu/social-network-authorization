@@ -40,8 +40,8 @@ app:
     tokenExpiration: 15m
     refreshTokenExpiration: 24h
   mail:
-    user: ${MAIL_USER:tdsuser45@mail.ru}
-    password: ${MAIL_PASSWORD:n3c421ZcGyinuqdKJyie}
+    user: ${MAIL_USER}
+    password: ${MAIL_PASSWORD}
 
 #logging:
 #  level:
