@@ -1,5 +1,6 @@
 package ru.skillbox.social_network_authorization.dto;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -17,6 +18,7 @@ public class RecoveryPasswordLinkRq {
     @Email(message = "Неправильный формат электронной почты")
     private String email;
 
+    @JsonCreator
     public RecoveryPasswordLinkRq(String email) {
         this.email = email;
     }
