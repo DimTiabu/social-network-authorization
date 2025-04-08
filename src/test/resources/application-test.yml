@@ -1,3 +1,7 @@
+app:
+  mail:
+    user: ${MAIL_USER:user@mail.ru}
+    password: ${MAIL_PASSWORD:12345}
 #spring:
 #  application:
 #    name: auth-service
@@ -23,7 +27,6 @@
 #    generate-ddl: true
 #    open-in-view: true
 #
-#app:
 #  kafka:
 #    topicProducerRegistration: "registration-topic"
 #    topicProducerUserIsOnline: "user-is-online-topic"
@@ -35,9 +38,6 @@
 #    secret: "someSecretKey"
 #    tokenExpiration: 15m
 #    refreshTokenExpiration: 24h
-#  mail:
-#    user: ${MAIL_USER:tdsuser45@mail.ru}
-#    password: ${MAIL_PASSWORD:n3c421ZcGyinuqdKJyie}
 #
 #eureka:
 #  client:
