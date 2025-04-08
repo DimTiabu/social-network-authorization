@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -50,10 +51,15 @@ class RegistrationControllerTest {
     static KafkaContainer kafka = new KafkaContainer(
             org.testcontainers.utility.DockerImageName.parse("confluentinc/cp-kafka:7.4.1"));
 
+    @SuppressWarnings("resource")
+    static GenericContainer<?> redis = new GenericContainer<>("redis:6.2.6")
+            .withExposedPorts(6379);
+
     @BeforeAll
     static void startContainer() {
         postgres.start();
         kafka.start();
+        redis.start();
     }
 
     @AfterAll
@@ -61,6 +67,7 @@ class RegistrationControllerTest {
         if (postgres != null) {
             postgres.stop();
             kafka.stop();
+            redis.stop();
         }
     }
     @DynamicPropertySource
@@ -70,6 +77,8 @@ class RegistrationControllerTest {
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
         registry.add("app.kafka.kafkaMessageGroupId", () -> "test-group");
+        registry.add("spring.data.redis.host", redis::getHost);
+        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
     }
 
     @Autowired
