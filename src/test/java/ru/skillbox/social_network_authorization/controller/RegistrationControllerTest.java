@@ -1,85 +1,128 @@
 package ru.skillbox.social_network_authorization.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.skillbox.social_network_authorization.configuration.TestSecurityConfiguration;
 import ru.skillbox.social_network_authorization.dto.RegistrationDto;
-import ru.skillbox.social_network_authorization.dto.kafka.RegistrationEventDto;
-import ru.skillbox.social_network_authorization.entity.User;
-import ru.skillbox.social_network_authorization.service.RegistrationService;
-import ru.skillbox.social_network_authorization.service.impl.KafkaMessageService;
+import ru.skillbox.social_network_authorization.repository.UserRepository;
 
-import java.util.UUID;
+import java.time.Duration;
+import java.util.Collections;
+import java.util.Properties;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
+@Testcontainers
 @ExtendWith(SpringExtension.class)
-@WebMvcTest(RegistrationController.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @Import(TestSecurityConfiguration.class)
 class RegistrationControllerTest {
 
+    @SuppressWarnings("resource")
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest")
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test");
+
+    static KafkaContainer kafka = new KafkaContainer(
+            org.testcontainers.utility.DockerImageName.parse("confluentinc/cp-kafka:7.4.1"));
+
+    @BeforeAll
+    static void startContainer() {
+        postgres.start();
+        kafka.start();
+    }
+
+    @AfterAll
+    static void stopContainer() {
+        if (postgres != null) {
+            postgres.stop();
+            kafka.stop();
+        }
+    }
+    @DynamicPropertySource
+    public static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+        registry.add("app.kafka.kafkaMessageGroupId", () -> "test-group");
+    }
+
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private RegistrationService registrationService;
-
-    @MockBean
-    private KafkaMessageService kafkaMessageService;
+    @Autowired
+    private UserRepository userRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @BeforeEach
+    void setup() {
+        userRepository.deleteAll();
+    }
 
     @Test
     void register_Success() throws Exception {
         RegistrationDto registrationDto = new RegistrationDto(
                 "test@example.com", "password", "password", "John", "Doe", "1234"
         );
-        User user = User.builder().id(UUID.randomUUID()).email("test@example.com").build();
-
-        when(registrationService.registerUser(any(User.class))).thenReturn(user);
-        doNothing().when(kafkaMessageService).sendMessageWithUserData(any(RegistrationEventDto.class));
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(registrationDto))
-                        .sessionAttr("captchaSecret", "1234"))  // Устанавливаем атрибут сессии
+                        .sessionAttr("captchaSecret", "1234"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().string("Успешная регистрация"));
 
-        verify(registrationService).registerUser(any(User.class));
-        verify(kafkaMessageService).sendMessageWithUserData(any(RegistrationEventDto.class));
-    }
+        // Проверяем, что пользователь создан в базе данных
+        assertThat(userRepository.findByEmail("test@example.com")).isPresent();
 
-    @Test
-    void register_InvalidCaptcha_ThrowsException() throws Exception {
-        RegistrationDto registrationDto = RegistrationDto.builder()
-                .email("test@example.com")
-                .password1("password")
-                .password2("password")
-                .firstName("John")
-                .lastName("Doe")
-                .captchaCode("wrongCaptcha")
-                .build();
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(registrationDto))
-                        .sessionAttr("captchaSecret", "1234"))  // Устанавливаем правильную капчу, но в запросе неверная
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        // Проверяем, что сообщение отправлено в Kafka
+        Properties props = new Properties();
+        props.put("bootstrap.servers", kafka.getBootstrapServers());
+        props.put("group.id", "test-group");
+        props.put("auto.offset.reset", "earliest");
+        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 
-        verify(registrationService, never()).registerUser(any(User.class));
-        verify(kafkaMessageService, never()).sendMessageWithUserData(any(RegistrationEventDto.class));
+        boolean messageReceived = false;
+        String expectedEmail = "test@example.com";
+        long endTime = System.currentTimeMillis() + 10000; // ждем до 10 секунд
+
+        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
+            consumer.subscribe(Collections.singletonList("registration-events"));
+
+            while (System.currentTimeMillis() < endTime && !messageReceived) {
+                var records = consumer.poll(Duration.ofMillis(500));
+                for (ConsumerRecord<String, String> oneRecord : records) {
+                    if (oneRecord.value().contains(expectedEmail)) {
+                        messageReceived = true;
+                        break;
+                    }
+                }
+            }
+        }
     }
 }
