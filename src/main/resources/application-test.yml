@@ -5,6 +5,10 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
 
+  data:
+    redis:
+      host: localhost
+
   datasource:
     url: jdbc:postgresql://localhost:5432/authorization_db
     username: postgres
