@@ -1,12 +1,14 @@
+host: localhost
+
 server:
   port: 0
 
 spring:
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:91.197.98.213:9092}
+    bootstrap-servers: ${host}:9092
 
   datasource:
-    url: jdbc:postgresql://91.197.98.213:5432/authorization_db?currentSchema=schema_authorization
+    url: jdbc:postgresql://${host}:5432/authorization_db?currentSchema=schema_authorization
     username: postgre_user
     password: postgre_secret_password
 
@@ -15,7 +17,7 @@ spring:
 
   data:
     redis:
-      host: 91.197.98.213
+      host: ${host}
 
   cloud:
     config:
@@ -29,7 +31,7 @@ spring:
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://91.197.98.213:8761/eureka/
+      defaultZone: http://${host}:8761/eureka/
     enabled: true
   instance:
     preferIpAddress: true  # Регистрировать IP-адрес контейнера в Eureka

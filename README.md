@@ -3,6 +3,7 @@
 ## Описание проекта
 Сервис аутентификации и авторизации для социальной сети, 
 реализованный с использованием Spring Boot. 
+
 Поддерживает JWT, refresh-токены, интеграцию с Telegram 
 и функциональность восстановления пароля через email.
 Сервис является частью микросервисного приложения. 
@@ -27,7 +28,7 @@
 ### Аутентификация
 
 - Стандартная аутентификация по email и паролю.
-- Поддержка входа по Telegram Chat ID (при наличии).
+- Поддержка входа по Telegram Chat ID.
 - Генерация JWT и refresh-токенов.
 - Аутентификация через AuthenticationManager.
 
@@ -49,14 +50,15 @@
 - Генерация captcha-картинки и соответствующего кода с использованием библиотеки Cage.
 - Формат изображения: data:image/jpeg;base64,....
 
-## Инструкция по локальному запуску проекта
+## Инструкция по запуску проекта на сервере
 
 ### Предварительные требования:
 
 - Установленный JDK (рекомендуется JDK 17)
 - Установленный Maven
-- PostgreSQL
+- Docker
 - Git
+- Удаленный сервер
 
 ### Шаги для запуска:
 
@@ -66,81 +68,67 @@
    git clone https://github.com/DimTiabu/social-network-authorization.git
 ```
 
-2. *Выбор активного профиля test в файле [application.yaml](application.yaml).* Например:
+2. *Выбор активного профиля dev в файле [application.yaml](application.yaml).*
 
 ```
   profiles:
-#    active: dev
-    active: test
+    active: dev
+#    active: test
 #    active: testEureka
 ```
 
-3. *Установка логина и пароля для доступа к БД в файле [application-test.yaml](application-test.yaml).* Например:
+3. *Установка номера хоста вместо 'localhost' в файле [application-dev.yaml](application-dev.yaml).* 
+```
+host: localhost
+```
+4. *Установка логина и пароля для доступа к БД в файле [application-dev.yaml](application-dev.yaml).* Например:
 ```
   datasource:
-    url: jdbc:postgresql://localhost:5432/authorization_db
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://${host}:5432/authorization_db?currentSchema=schema_authorization
+    username: postgre_user
+    password: postgre_secret_password
 ```
-4. *Переход в директорию расположения файла docker-compose:*
-
-```sh
-    cd social-network-authorization/docker
+5. *Добавление переменных окружения в файле [Dockerfile](Dockerfile).* Например:
 ```
-
-5. *Запуск docker-compose:*
-
-```sh
-    docker-compose up -d
+ENV MAIL_USER=test@mail.ru
+ENV MAIL_PASSWORD=testPassword
 ```
-⏳ Проверка окончания запуска всех контейнеров Kafka, Redis, PostgreSQL 
-и Zookeeper:
-
-```sh
-    docker ps
-```
-**Переходить к следующему пункту можно, 
-когда все контейнеры будут в статусе Up.**
-
-6. *Переход в директорию репозитория:*
-
-```sh
-   cd ..
-```
-
-7. *Добавление переменных окружения:*
-
-```sh
-     $env:MAIL_USER="mail@mail.ru"
-     $env:MAIL_PASSWORD="passwordForSmtp"
-```
-Здесь нужно указать электронную почту и пароль для SMTP-рассылки. 
+Здесь нужно указать электронную почту и пароль для SMTP-рассылки.
 
 [Подробнее о SMTP на примере сервиса mail.ru](https://help.mail.ru/mail/mailer/password/#create:~:text=%D0%B8%D0%BB%D0%B8%20%D0%B4%D1%80%D1%83%D0%B3%D0%BE%D0%B9%20%D0%BA%D0%BB%D0%B8%D0%B5%D0%BD%D1%82.-,%D0%9A%D0%B0%D0%BA%20%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D1%82%D1%8C%20%D0%BF%D0%B0%D1%80%D0%BE%D0%BB%D1%8C%20%D0%B4%D0%BB%D1%8F%20%D0%B2%D0%BD%D0%B5%D1%88%D0%BD%D0%B5%D0%B3%D0%BE%20%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F,-%D0%9F%D0%B0%D1%80%D0%BE%D0%BB%D1%8C%20%D0%B4%D0%BB%D1%8F%20%D0%B2%D0%BD%D0%B5%D1%88%D0%BD%D0%B5%D0%B3%D0%BE).
-8. *Сборка проекта:*
-
+6. *Сборка проекта*
 
 ```sh
-    mvn clean install
+    mvn clean package
 ```
 
-7. *Запуск приложения:*
+7. *Сборка docker-образа*
 
-sh
+```sh
+    docker build -t your_username/myapp:latest .
 ```
-mvn spring-boot:run
+8. *Авторизация в Docker Hub:*
+
+```sh
+    docker login
 ```
 
-### Использование API
+9. *Отправка образа на Docker Hub:*
 
-Приложение предоставляет REST API для взаимодействия
-с функционалом социальной сети.
+```sh
+     docker push your_username/myapp:latest
+```
+После этого образ будет доступен в вашем аккаунте на Docker Hub.
 
-Для начала работы с приложением откройте браузер
-и перейдите по адресу: http://localhost:8080/.
+*Вы можете автоматизировать процесс с помощью CI/CD-систем 
+(например, TeamCity, GitHub Actions, GitLab CI или Jenkins), 
+чтобы сборка и отправка образа происходили автоматически 
+при изменениях в кодовой базе.*
 
-     
-
+10. *Запуск контейнера с Docker Hub на сервере:*
+```sh
+    docker pull dmitrtiab/auth-service:latest
+```
 ---
 
-Спасибо за использование приложения "Поисковая система"! Удачного поиска!
+Спасибо за использование приложения "Социальная сеть"!
