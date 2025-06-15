@@ -19,10 +19,9 @@
 ![Static Badge](https://img.shields.io/badge/PostgreSQL-grey)
 
 ![Static Badge](https://img.shields.io/badge/SMTP-grey)
-![Static Badge](https://img.shields.io/badge/PostgreSQL-grey)
 ![Static Badge](https://img.shields.io/badge/Eureka_Client-grey)
 ![Static Badge](https://img.shields.io/badge/Liquibase-grey)
-![Static Badge](https://img.shields.io/badge/Captcha_(com.github.cage)-grey)
+![Static Badge](https://img.shields.io/badge/Captcha-Cage_library-grey)
 
 ## Функциональность
 ### Аутентификация
@@ -34,21 +33,20 @@
 
 ### Обновление токенов
 
-- Автоматическая генерация пары access/refresh токенов.
+- Автоматическая генерация пары access- и refresh-токенов.
 - Проверка валидности и срока действия refresh-токенов.
 
 ### Восстановление пароля
 - Генерация временного пароля и отправка HTML-письма через SMTP (Mail.ru).
-- HTML-шаблон: resources/templates/recovery_email.html.
+- [Шаблон письма](src/main/resources/templates/recovery_email.html).
 
 ### Смена пароля и email
 - Подтверждение старого пароля перед сменой.
 - Валидация совпадения новых паролей.
-- Отправка Kafka-сообщения при изменении email.
+- Отправка Kafka-сообщения о смене email в другие микросервисы.
 
 ### Captcha
-- Генерация captcha-картинки и соответствующего кода с использованием библиотеки Cage.
-- Формат изображения: data:image/jpeg;base64,....
+- Генерация изображения CAPTCHA и соответствующего кода с использованием библиотеки Cage.
 
 ## Инструкция по запуску проекта на сервере
 
@@ -58,77 +56,178 @@
 - Установленный Maven
 - Docker
 - Git
-- Удаленный сервер
+- Удаленный сервер c Docker
 
 ### Шаги для запуска:
 
 1. *Клонирование репозитория:*
 
+
 ```sh
    git clone https://github.com/DimTiabu/social-network-authorization.git
 ```
 
-2. *Выбор активного профиля dev в файле [application.yaml](application.yaml).*
+2. *Выбор активного профиля dev в файле [application.yml](src/main/resources/application.yml).*
 
 ```
   profiles:
     active: dev
-#    active: test
-#    active: testEureka
 ```
 
-3. *Установка номера хоста вместо 'localhost' в файле [application-dev.yaml](application-dev.yaml).* 
+3. *Указание имени хоста вместо 'localhost' в файле [application-dev.yml](src/main/resources/application-dev.yml).* 
 ```
 host: localhost
 ```
-4. *Установка логина и пароля для доступа к БД в файле [application-dev.yaml](application-dev.yaml).* Например:
+4. *Установка логина и пароля для доступа к БД в файле [application-dev.yml](src/main/resources/application-dev.yml).* Например:
 ```
   datasource:
     url: jdbc:postgresql://${host}:5432/authorization_db?currentSchema=schema_authorization
-    username: postgre_user
+    username: postgres
     password: postgre_secret_password
 ```
-5. *Добавление переменных окружения в файле [Dockerfile](Dockerfile).* Например:
-```
-ENV MAIL_USER=test@mail.ru
-ENV MAIL_PASSWORD=testPassword
-```
-Здесь нужно указать электронную почту и пароль для SMTP-рассылки.
 
-[Подробнее о SMTP на примере сервиса mail.ru](https://help.mail.ru/mail/mailer/password/#create:~:text=%D0%B8%D0%BB%D0%B8%20%D0%B4%D1%80%D1%83%D0%B3%D0%BE%D0%B9%20%D0%BA%D0%BB%D0%B8%D0%B5%D0%BD%D1%82.-,%D0%9A%D0%B0%D0%BA%20%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D1%82%D1%8C%20%D0%BF%D0%B0%D1%80%D0%BE%D0%BB%D1%8C%20%D0%B4%D0%BB%D1%8F%20%D0%B2%D0%BD%D0%B5%D1%88%D0%BD%D0%B5%D0%B3%D0%BE%20%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F,-%D0%9F%D0%B0%D1%80%D0%BE%D0%BB%D1%8C%20%D0%B4%D0%BB%D1%8F%20%D0%B2%D0%BD%D0%B5%D1%88%D0%BD%D0%B5%D0%B3%D0%BE).
-6. *Сборка проекта*
+5. *Сборка проекта*
 
 ```sh
     mvn clean package
 ```
 
-7. *Сборка docker-образа*
+6. *Сборка docker-образа*
 
 ```sh
-    docker build -t your_username/myapp:latest .
+    docker build -t your_username/auth-service:latest .
 ```
-8. *Авторизация в Docker Hub:*
+7. *Авторизация в Docker Hub:*
 
 ```sh
     docker login
 ```
 
-9. *Отправка образа на Docker Hub:*
+8. *Отправка образа на Docker Hub:*
 
 ```sh
-     docker push your_username/myapp:latest
+     docker push your_username/auth-service:latest
 ```
 После этого образ будет доступен в вашем аккаунте на Docker Hub.
 
-*Вы можете автоматизировать процесс с помощью CI/CD-систем 
+*Можно автоматизировать процесс с помощью CI/CD-систем 
 (например, TeamCity, GitHub Actions, GitLab CI или Jenkins), 
 чтобы сборка и отправка образа происходили автоматически 
 при изменениях в кодовой базе.*
 
+9. Размещение файла `.env` на сервере*
+
+Создайте `.env` рядом с местом запуска контейнера, например:
+
+```
+# .env
+MAIL_USER=test@mail.ru
+MAIL_PASSWORD=testPassword
+```
+Здесь нужно указать электронную почту и пароль для SMTP-рассылки.
+
+Подробнее о SMTP на примере сервиса mail.ru можно прочитать [здесь](https://help.mail.ru/mail/mailer/password/#create:~:text=%D0%B8%D0%BB%D0%B8%20%D0%B4%D1%80%D1%83%D0%B3%D0%BE%D0%B9%20%D0%BA%D0%BB%D0%B8%D0%B5%D0%BD%D1%82.-,%D0%9A%D0%B0%D0%BA%20%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D1%82%D1%8C%20%D0%BF%D0%B0%D1%80%D0%BE%D0%BB%D1%8C%20%D0%B4%D0%BB%D1%8F%20%D0%B2%D0%BD%D0%B5%D1%88%D0%BD%D0%B5%D0%B3%D0%BE%20%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F,-%D0%9F%D0%B0%D1%80%D0%BE%D0%BB%D1%8C%20%D0%B4%D0%BB%D1%8F%20%D0%B2%D0%BD%D0%B5%D1%88%D0%BD%D0%B5%D0%B3%D0%BE).
+
+
 10. *Запуск контейнера с Docker Hub на сервере:*
 ```sh
     docker pull dmitrtiab/auth-service:latest
+    docker run -d \
+  --name auth-service \
+  --env-file /home/user/app/.env \
+  -p 8081:8081 \
+  your_username/auth-service:latest
+```
+📌 Важно: файл `.env` не должен попадать в Docker-образ 
+и не используется при `docker build`.  
+Убедитесь, что `.env` находится на сервере рядом с местом запуска, 
+и передавайте его через флаг `--env-file`
+
+---
+### Внимание!
+
+Для правильной работы сервиса авторизации необходимо запустить на сервере
+сервисы gateway, discovery, фронтенд-сервис, а также Redis, PostgreSQL,
+Apache Kafka и Apache ZooKeeper при помощи следующих команд:
+```sh
+    docker pull dmitrtiab/social-network-gateway:latest
+    docker pull dmitrtiab/social-network-discovery:latest
+    docker pull dmitrtiab/social-network-frontend:latest
+    docker pull redis:7.0.12
+    docker pull postgres:16.2-alpine
+    docker pull wurstmeister/kafka:2.13-2.6.3
+    docker pull confluentinc/cp-zookeeper:5.5.0
+    
+    docker run -d \
+  --name gateway-service \
+  -p 8080:8080 \
+  --network app-network \
+  dmitrtiab/social-network-gateway:latest
+  
+    docker run -d \
+  --name discovery-service \
+  --restart always \
+  -p 8761:8761 \
+  --network app-network \
+  dmitrtiab/social-network-discovery:latest
+
+    docker run -d \
+  --name frontend \
+  --restart always \
+  -p 80:80 \
+  --network app-network \
+  dmitrtiab/social-network-frontend:latest
+   
+    docker run -d \
+  --name redis \
+  --restart always \
+  -p 6379:6379 \
+  --network app-network \
+  redis:7.0.12
+
+    docker run -d \
+  --name postgres \
+  --restart always \
+  -e POSTGRES_USER=postgres \
+  -p 5432:5432 \
+  --network app-network \
+  postgres:16.2-alpine
+  
+    docker run -d \
+  --name kafka \
+  --restart always \
+  -p 9092:9092 -p 9094:9094 \
+  -e KAFKA_ADVERTISED_HOST_NAME=kafka \
+  -e KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 \
+  -e KAFKA_ADVERTISED_LISTENERS=INSIDE://:9092,OUTSIDE://SERVER_IP:9094 \
+  -e KAFKA_LISTENERS=INSIDE://:9092,OUTSIDE://:9094 \
+  -e KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT \
+  -e KAFKA_INTER_BROKER_LISTENER_NAME=INSIDE \
+  --network app-network \
+  wurstmeister/kafka:2.13-2.6.3
+# Вместо SERVER_IP укажите внешний IP-адрес вашего сервера.
+
+    docker run -d \
+  --name zookeeper \
+  --restart always \
+  -p 2181:2181 \
+  -e ZOOKEEPER_CLIENT_PORT=2181 \
+  -e ZOOKEEPER_TICK_TIME=2000 \
+  --network app-network \
+  confluentinc/cp-zookeeper:5.5.0
+
 ```
 ---
+## Тестирование
 
-Спасибо за использование приложения "Социальная сеть"!
+Проект содержит модульные и интеграционные тесты, покрывающие:
+
+- Аутентификацию и генерацию токенов
+- Восстановление пароля и отправку писем через SMTP
+- Kafka-события (например, смена email)
+- REST API эндпоинты (`/auth/login`, `/auth/register`, `/auth/recovery` и др.)
+
+Для запуска всех тестов:
+```sh
+    mvn clean test
+```
