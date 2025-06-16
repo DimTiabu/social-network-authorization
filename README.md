@@ -9,15 +9,15 @@
 Сервис является частью микросервисного приложения. 
 Для взаимодействия с другими сервисами реализована интеграция с Kafka. 
 
-## Стэк используемых технологий
+## Стек используемых технологий
 ![Static Badge](https://img.shields.io/badge/Java-17-blue)
 ![Static Badge](https://img.shields.io/badge/Spring_Boot-3-green)
 ![Static Badge](https://img.shields.io/badge/Spring_Security-grey)
 ![Static Badge](https://img.shields.io/badge/JWT_(JJWT)-grey)
-![Static Badge](https://img.shields.io/badge/Kafka-grey)
+![Static Badge](https://img.shields.io/badge/Apache_Kafka-grey)
 ![Static Badge](https://img.shields.io/badge/Redis-grey)
 ![Static Badge](https://img.shields.io/badge/PostgreSQL-grey)
-
+![Static Badge](https://img.shields.io/badge/Apache_Maven-grey)
 ![Static Badge](https://img.shields.io/badge/SMTP-grey)
 ![Static Badge](https://img.shields.io/badge/Eureka_Client-grey)
 ![Static Badge](https://img.shields.io/badge/Liquibase-grey)
@@ -69,21 +69,20 @@
 
 2. *Выбор активного профиля dev в файле [application.yml](src/main/resources/application.yml).*
 
-```
-  profiles:
-    active: dev
+```yaml
+profiles:
+  active: dev
 ```
 
 3. *Указание имени хоста вместо 'localhost' в файле [application-dev.yml](src/main/resources/application-dev.yml).* 
-```
+```yaml
 host: localhost
 ```
 4. *Установка логина и пароля для доступа к БД в файле [application-dev.yml](src/main/resources/application-dev.yml).* Например:
-```
-  datasource:
-    url: jdbc:postgresql://${host}:5432/authorization_db?currentSchema=schema_authorization
-    username: postgres
-    password: postgre_secret_password
+```yaml
+datasource:
+  username: postgres
+  password: postgre_secret_password
 ```
 
 5. *Сборка проекта*
