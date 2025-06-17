@@ -11,7 +11,7 @@
 
 ## Стек используемых технологий
 ![Static Badge](https://img.shields.io/badge/Java-17-blue)
-![Static Badge](https://img.shields.io/badge/Spring_Boot-3-green)
+![Static Badge](https://img.shields.io/badge/Spring_Boot-3.3.8-green)
 ![Static Badge](https://img.shields.io/badge/Spring_Security-grey)
 ![Static Badge](https://img.shields.io/badge/JWT_(JJWT)-grey)
 ![Static Badge](https://img.shields.io/badge/Apache_Kafka-grey)
