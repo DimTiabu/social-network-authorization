@@ -1,23 +1,23 @@
-host: ${HOST}
-
 server:
   port: 0
 
 spring:
   kafka:
-    bootstrap-servers: ${host}:9092
+    bootstrap-servers: ${HOST}:9092
 
   datasource:
-    url: jdbc:postgresql://${host}:5432/authorization_db?currentSchema=schema_authorization
+    url: jdbc:postgresql://${HOST}:5432/authorization_db?currentSchema=schema_authorization
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
 
   liquibase:
+    user: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
     drop-first: false
 
   data:
     redis:
-      host: ${host}
+      host: ${HOST}
 
   cloud:
     config:
@@ -31,7 +31,7 @@ spring:
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://${host}:8761/eureka/
+      defaultZone: http://${HOST}:8761/eureka/
     enabled: true
   instance:
     preferIpAddress: true  # Регистрировать IP-адрес контейнера в Eureka

@@ -89,7 +89,10 @@ class AuthServiceImplTest {
                 .build();
 
         AppUserDetails userDetails = new AppUserDetails(user);
-        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities());
 
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
