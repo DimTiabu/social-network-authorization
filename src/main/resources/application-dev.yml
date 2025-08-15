@@ -1,4 +1,4 @@
-host: localhost
+host: ${HOST}
 
 server:
   port: 0
@@ -9,8 +9,8 @@ spring:
 
   datasource:
     url: jdbc:postgresql://${host}:5432/authorization_db?currentSchema=schema_authorization
-    username: postgre_user
-    password: postgre_secret_password
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
 
   liquibase:
     drop-first: false
