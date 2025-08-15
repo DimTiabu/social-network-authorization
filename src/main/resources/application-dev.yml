@@ -19,14 +19,14 @@ spring:
     redis:
       host: ${HOST}
 
-  cloud:
-    config:
-      import-check:
-        enabled: false
-      discovery:
-        enabled: true
-        service-id: config-service
-      fail-fast: true
+#  cloud:
+#    config:
+#      import-check:
+#        enabled: false
+#      discovery:
+#        enabled: true
+#        service-id: config-service
+#      fail-fast: true
 
 eureka:
   client:
