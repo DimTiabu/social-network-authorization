@@ -6,7 +6,7 @@ spring:
     bootstrap-servers: ${HOST}:9092
 
   datasource:
-    url: jdbc:postgresql://${HOST}:5432/authorization_db?currentSchema=schema_authorization
+    url: jdbc:postgresql://postgres:5432/authorization_db?currentSchema=schema_authorization
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
 
