@@ -1,6 +1,7 @@
 package ru.tyabutov.social_network_authorization.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,6 +68,7 @@ class AuthServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        SecurityContextHolder.clearContext();
         ReflectionTestUtils.setField(authService, "mailUsername", "mailUsername");
         ReflectionTestUtils.setField(authService, "mailPassword", "mailPassword");
 
@@ -75,6 +77,10 @@ class AuthServiceImplTest {
         user.setPassword("encodedPassword");
     }
 
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
     @Test
     void givenValidCredentials_whenAuthenticate_thenReturnTokenResponse() {
         // Подготовка данных
