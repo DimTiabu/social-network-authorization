@@ -7,12 +7,12 @@ spring:
 
   datasource:
     url: jdbc:postgresql://postgres:5432/authorization_db?currentSchema=schema_authorization
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
 
   liquibase:
-    user: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+    user: ${SPRING_LIQUIBASE_USER}
+    password: ${SPRING_LIQUIBASE_PASSWORD}
     drop-first: false
 
   data:
