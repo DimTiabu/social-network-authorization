@@ -1,12 +1,14 @@
-package ru.tyabutov.social_network_authorization.controller;
+package ru.tyabutov.social_network_authorization.exception;
 
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import ru.tyabutov.social_network_authorization.exception.*;
 import ru.tyabutov.social_network_authorization.dto.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.List;
 
 @Slf4j
 @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -78,6 +80,28 @@ public class ExceptionHandlerController {
         return new ErrorResponse(
                 HttpStatus.UNAUTHORIZED.value(),
                 ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidInvitationCodeException.class)
+    public ErrorResponse handleInvalidInvitationCodeException(
+            InvalidInvitationCodeException ex) {
+        return new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleValidationExceptions(MethodArgumentNotValidException ex) {
+        List<String> errors = ex.getBindingResult().getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .toList();
+
+        log.error("Ошибка валидации: {}", errors);
+        return new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Ошибка валидации: " + String.join(", ", errors));
     }
 
     @ExceptionHandler(Exception.class)

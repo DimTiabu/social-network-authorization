@@ -26,7 +26,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.tyabutov.social_network_authorization.configuration.TestSecurityConfiguration;
 import ru.tyabutov.social_network_authorization.dto.RegistrationDto;
+import ru.tyabutov.social_network_authorization.entity.InvitationCode;
 import ru.tyabutov.social_network_authorization.repository.UserRepository;
+import ru.tyabutov.social_network_authorization.repository.InvitationCodeRepository;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -70,6 +72,7 @@ class RegistrationControllerTest {
             redis.stop();
         }
     }
+
     @DynamicPropertySource
     public static void configureProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
@@ -87,18 +90,34 @@ class RegistrationControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private InvitationCodeRepository invitationCodeRepository;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setup() {
         userRepository.deleteAll();
+        invitationCodeRepository.deleteAll();
     }
 
     @Test
     void register_Success() throws Exception {
-        RegistrationDto registrationDto = new RegistrationDto(
-                "test@example.com", "password", "password", "John", "Doe", "1234"
-        );
+        InvitationCode invitationCode = InvitationCode.builder()
+                .email("test@example.com")
+                .confirmationCode("INVITE123")
+                .build();
+        invitationCodeRepository.save(invitationCode);
+
+        RegistrationDto registrationDto = RegistrationDto.builder()
+                .email("test@example.com")
+                .password1("password123")
+                .password2("password123")
+                .firstName("John")
+                .lastName("Doe")
+                .captchaCode("1234")
+                .confirmationCode("INVITE123")
+                .build();
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -109,6 +128,10 @@ class RegistrationControllerTest {
 
         // Проверяем, что пользователь создан в базе данных
         assertThat(userRepository.findByEmail("test@example.com")).isPresent();
+
+        // Проверяем, что инвайт-код удален после успешной регистрации
+        assertThat(invitationCodeRepository.findByEmailAndConfirmationCode(
+                "test@example.com", "INVITE123")).isEmpty();
 
         // Проверяем, что сообщение отправлено в Kafka
         Properties props = new Properties();
@@ -135,5 +158,49 @@ class RegistrationControllerTest {
                 }
             }
         }
+    }
+
+    @Test
+    void register_Failure_InvalidInvitationCode() throws Exception {
+        RegistrationDto registrationDto = RegistrationDto.builder()
+                .email("test@example.com")
+                .password1("password123")
+                .password2("password123")
+                .firstName("John")
+                .lastName("Doe")
+                .captchaCode("1234")
+                .confirmationCode("INVALID_CODE") // Неверный код
+                .build();
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registrationDto))
+                        .sessionAttr("captchaSecret", "1234"))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+        // Проверяем, что пользователь НЕ создан в базе данных
+        assertThat(userRepository.findByEmail("test@example.com")).isEmpty();
+    }
+
+    @Test
+    void register_Failure_MissingInvitationCode() throws Exception {
+        RegistrationDto registrationDto = RegistrationDto.builder()
+                .email("test@example.com")
+                .password1("password123")
+                .password2("password123")
+                .firstName("John")
+                .lastName("Doe")
+                .captchaCode("1234")
+                .confirmationCode("") // Пустой код
+                .build();
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registrationDto))
+                        .sessionAttr("captchaSecret", "1234"))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+        // Проверяем, что пользователь НЕ создан в базе данных
+        assertThat(userRepository.findByEmail("test@example.com")).isEmpty();
     }
 }

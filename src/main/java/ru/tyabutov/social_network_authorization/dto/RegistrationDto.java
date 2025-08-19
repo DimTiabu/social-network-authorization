@@ -28,4 +28,7 @@ public class RegistrationDto {
 
     private String captchaCode;
 
+    @NotEmpty(message = "Введите пригласительный код")
+    private String confirmationCode;
+
 }

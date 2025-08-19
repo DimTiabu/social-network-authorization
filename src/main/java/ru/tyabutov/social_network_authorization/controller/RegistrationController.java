@@ -26,14 +26,15 @@ public class RegistrationController {
             @RequestBody @Valid RegistrationDto registrationDto,
             HttpSession session) {
         String expectedCaptcha = (String) session.getAttribute("captchaSecret");
-        log.info("expectedCaptcha = {}", expectedCaptcha);
 
         if (!expectedCaptcha.equalsIgnoreCase(registrationDto.getCaptchaCode())) {
             throw new CaptchaException("Капча введена неверно");
         }
 
         User user = registrationService.registerUser(
-                UserMapperFactory.registrationDtoToUser(registrationDto));
+                UserMapperFactory.registrationDtoToUser(registrationDto),
+                registrationDto.getConfirmationCode()
+        );
 
         kafkaMessageService.sendMessageWithUserData(
                 RegistrationEventDto.builder()
