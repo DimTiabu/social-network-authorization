@@ -27,11 +27,11 @@ public class JwtServiceImpl implements JwtService {
 
     public String generateJwtToken(AppUserDetails userDetails) {
         String jwt = Jwts.builder()
-                .claim("sub", userDetails.getUsername())
-                .claim("accountId", userDetails.getId())
+                .setSubject(userDetails.getUsername()) // <- исправлено: теперь email как subject
+                .claim("accountId", userDetails.getId().toString()) // UUID как строка
                 .claim("roles", userDetails.getAuthorities())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime() + tokenExpiration.toMillis()))
+                .setExpiration(new Date(new Date().getTime() + tokenExpiration.toMillis())) // оставлено как есть
                 .setHeaderParam("typ", "JWT")
                 .signWith(SignatureAlgorithm.HS256, jwtSecret)
                 .compact();
@@ -41,37 +41,38 @@ public class JwtServiceImpl implements JwtService {
     }
 
     public String getUsername(String token) {
-        return Jwts.parser().setSigningKey(jwtSecret)
-                .parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parser()
+                .setSigningKey(jwtSecret)
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject(); // теперь точно возвращает email
     }
 
     public boolean validate(String authToken) {
-        boolean result = true;
-
         try {
             String email = getUsername(authToken);
             log.info("Запущен метод validate для пользователя {}", email);
 
-            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
-            String accountId = (String) Jwts.parser().setSigningKey(jwtSecret)
-                    .parseClaimsJws(authToken).getBody().get("accountId");
-            kafkaMessageService.sendMessageWhenUserOnline(
-                    new UserOnlineEventDto(accountId));
+            Claims claims = Jwts.parser()
+                    .setSigningKey(jwtSecret)
+                    .parseClaimsJws(authToken)
+                    .getBody();
 
+            String accountId = claims.get("accountId", String.class); // безопасное приведение
+            kafkaMessageService.sendMessageWhenUserOnline(new UserOnlineEventDto(accountId));
+
+            return true;
         } catch (SignatureException e) {
             log.error("Недопустимая подпись: {}", e.getMessage());
-            result = false;
         } catch (MalformedJwtException e) {
             log.error("Недопустимый токен: {}", e.getMessage());
-            result = false;
         } catch (UnsupportedJwtException e) {
             log.error("Токен не поддерживается: {}", e.getMessage());
-            result = false;
         } catch (ExpiredJwtException e) {
             log.error("Токен просрочен");
-            result = false;
+        } catch (Exception e) {
+            log.error("Ошибка при валидации токена: {}", e.getMessage());
         }
-
-        return result;
+        return false;
     }
 }
