@@ -3,7 +3,7 @@ server:
 
 spring:
   kafka:
-    bootstrap-servers: ${HOST}:9092
+    bootstrap-servers: ${HOST}:9094
 
   datasource:
     url: jdbc:postgresql://postgres:5432/authorization_db?currentSchema=schema_authorization
