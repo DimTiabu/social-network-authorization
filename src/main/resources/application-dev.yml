@@ -17,7 +17,7 @@ spring:
 
   data:
     redis:
-      host: ${HOST}
+      host: redis
 
 eureka:
   client:
