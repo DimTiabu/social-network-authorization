@@ -42,6 +42,6 @@ app:
     user: ${MAIL_USER}
     password: ${MAIL_PASSWORD}
 
-#logging:
-#  level:
-#    root: debug
+logging:
+  level:
+    root: debug
