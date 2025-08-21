@@ -1,11 +1,5 @@
 server:
   port: 0
-  servlet:
-    session:
-      cookie:
-        domain: ${DOMAIN}
-        same-site: none
-        secure: true
 
 spring:
   kafka:
