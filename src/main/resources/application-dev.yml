@@ -4,8 +4,8 @@ server:
     session:
       cookie:
         domain: ${DOMAIN}
-        same-site: lax
-        secure: false
+        same-site: none
+        secure: true
 
 spring:
   kafka:
