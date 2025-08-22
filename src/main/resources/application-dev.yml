@@ -1,5 +1,13 @@
 server:
   port: 0
+  servlet:
+    session:
+      cookie:
+        name: JSESSIONID
+        secure: true          # только HTTPS (для тестов можно временно false)
+        http-only: true
+        same-site: none       # важно для cross-site запросов
+        domain: bakery45.ru   # общий домен для фронта и API
 
 spring:
   kafka:
