@@ -4,7 +4,7 @@ server:
     session:
       cookie:
         name: JSESSIONID
-        secure: true          # только HTTPS (для тестов можно временно false)
+        secure: false          # только HTTPS (для тестов можно временно false)
         http-only: true
         same-site: none       # важно для cross-site запросов
         domain: bakery45.ru   # общий домен для фронта и API
