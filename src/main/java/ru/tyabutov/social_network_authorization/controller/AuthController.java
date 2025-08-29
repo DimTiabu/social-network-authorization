@@ -1,5 +1,6 @@
 package ru.tyabutov.social_network_authorization.controller;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -104,14 +105,26 @@ public class AuthController {
     }
 
     private String getToken(HttpServletRequest request) throws JwtAuthenticationException {
-
+        // 1. Проверка заголовка
         String headerAuth = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
             log.info("HeaderAuth: {}", headerAuth);
             return headerAuth.substring(7);
-        } else {
-            throw new JwtAuthenticationException("JWT-токен отсутствует или недействителен");
         }
+
+        // 2. Проверка cookie
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("jwt".equals(cookie.getName())) {
+                    log.info("Token from cookie: {}", cookie.getValue());
+                    return cookie.getValue();
+                }
+            }
+        }
+
+        // 3. Если ничего не найдено → ошибка
+        throw new JwtAuthenticationException("JWT-токен отсутствует или недействителен");
     }
+
 
 }
