@@ -34,3 +34,20 @@ eureka:
     enabled: true
   instance:
     preferIpAddress: true
+
+management:
+  server:
+    port: 8081  # Фиксированный порт только для Actuator
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
