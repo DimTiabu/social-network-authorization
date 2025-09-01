@@ -2,6 +2,9 @@ app:
   mail:
     user: ${MAIL_USER:user@mail.ru}
     password: ${MAIL_PASSWORD:12345}
+  jwt:
+    secret: ${JWT_SECRET}
+
 #spring:
 #  application:
 #    name: auth-service
