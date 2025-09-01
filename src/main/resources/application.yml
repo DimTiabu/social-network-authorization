@@ -35,7 +35,7 @@ app:
 
     kafkaMessageGroupId: "kafka-account-group-id"
   jwt:
-    secret: "someSecretKey"
+    secret: ${JWT_SECRET}
     tokenExpiration: 15m
     refreshTokenExpiration: 24h
   mail:
